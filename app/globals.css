@@ -1,0 +1,58 @@
+:root{
+  --bg:#f6f8fa;
+  --surface:#ffffff;
+  --muted:#6b7280;
+  --brand:#0b5fff;
+  --brand-dark:#0738b8;
+  --max-width:1100px;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background:linear-gradient(180deg,var(--bg),#ffffff);
+  color:#0f172a;
+}
+.site-container{
+  max-width:var(--max-width);
+  margin:2rem auto;
+  padding:1rem;
+}
+
+/* Header */
+.site-header{
+  background:linear-gradient(90deg,var(--brand),var(--brand-dark));
+  color:white;
+  padding:1rem 2rem;
+}
+.site-header .inner{display:flex;align-items:center;justify-content:space-between;max-width:var(--max-width);margin:0 auto}
+.brand{font-weight:700;letter-spacing:0.4px}
+.nav a{color:rgba(255,255,255,0.95);text-decoration:none;margin-left:1rem}
+
+/* Hero */
+.hero{display:flex;gap:2rem;align-items:center;padding:3rem 1rem;border-radius:var(--radius);background:linear-gradient(180deg,rgba(11,95,255,0.08),transparent)}
+.hero h1{margin:0 0 0.5rem 0;font-size:2rem}
+.hero p{margin:0;color:var(--muted)}
+.hero .cta{margin-top:1rem}
+.btn{background:var(--brand);color:white;padding:0.6rem 1rem;border-radius:8px;border:none;cursor:pointer}
+.btn.secondary{background:transparent;color:var(--brand);border:1px solid rgba(11,95,255,0.12)}
+
+/* Cards */
+.card{background:var(--surface);padding:1.25rem;border-radius:12px;box-shadow:0 6px 20px rgba(11,40,80,0.06)}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:1.5rem}
+
+/* Forms */
+.auth-card{display:flex;flex-direction:column;gap:0.75rem}
+.auth-card label{font-size:0.9rem;color:var(--muted)}
+.auth-card input{padding:0.6rem;border-radius:8px;border:1px solid #e6e9ef}
+.auth-actions{display:flex;gap:0.5rem;align-items:center}
+
+/* Footer */
+.site-footer{margin-top:3rem;padding:2rem 1rem;background:#fafafa;color:var(--muted);text-align:center}
+
+@media(max-width:880px){
+  .grid{grid-template-columns:1fr}
+  .hero{flex-direction:column}
+}

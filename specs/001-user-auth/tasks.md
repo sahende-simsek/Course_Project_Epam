@@ -59,6 +59,18 @@ Phase 10 — Test Hardening & Quality Gates
 - [x] T035 Enforce CI gates: coverage thresholds, TypeScript strict check, lint; update `.github/workflows/auth-tests.yml` to block merges on failures and surface mutation results — .github/workflows/auth-tests.yml
 - [x] T036 Implement reusable test fixtures and in-memory test DB helpers (`tests/helpers/testDb.ts`, `tests/helpers/createTestUser.ts`) to avoid fragile or slow tests and enable local TDD — tests/helpers/
 
+Phase 11 — Frontend (UI, UX, Tests)
+-- [x] T037 Confirm all frontend deliverables use React + TypeScript + Next.js (App Router) as per frontend spec and plan. Document rationale and constitution compliance in developer guide.
+ - [x] T038 Create frontend spec and wireframes (specs/001-user-auth/frontend.spec.md) — specs/001-user-auth/frontend.spec.md
+ - [x] T039 Add design tokens and theme primitives for corporate branding (`src/frontend/theme`) — src/frontend/theme/
+ - [x] T040 Implement `LoginForm` component as a React function component (TypeScript, accessible) and unit tests — src/frontend/components/LoginForm.tsx, tests/unit/frontend/LoginForm.test.ts
+ - [x] T041 Implement `RegisterForm` component and password strength meter + tests as React function component — src/frontend/components/RegisterForm.tsx, tests/unit/frontend/RegisterForm.test.ts
+ - [x] T042 Implement `AuthClient` wrapper for API calls and secure handling guidance (document storage strategy) — src/frontend/lib/authClient.ts
+ - [x] T043 Add Playwright E2E tests for register->login->refresh->logout flows under `tests/e2e/` — tests/e2e/frontend.auth.flow.spec.ts
+ - [x] T043 Accessibility audit (axe) and fixes for critical flows — tests/e2e/accessibility.* or CI axe step
+ - [x] T044 Add CI step to run frontend unit tests and Playwright E2E (staging or `TEST_USE_INMEMORY` dev-server) — .github/workflows/auth-tests.yml
+ - [x] T045 Document frontend quickstart and developer guide, including rationale for React + TypeScript + Next.js stack and constitution compliance — specs/001-user-auth/frontend-quickstart.md
+
 
 Dependencies (high-level)
 - `T004` must complete before `T020` and `T021` (DB model required).  

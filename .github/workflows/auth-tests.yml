@@ -62,6 +62,17 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      - name: Start dev server (background)
+        run: |
+          # start local dev server in background for Playwright to exercise
+          nohup node ./scripts/dev-server.js > dev-server.log 2>&1 &
+          echo "started"
+
+      - name: Wait for dev server
+        run: npx wait-on http://localhost:3000 -t 60000
+
       - name: E2E tests (Playwright)
-        # Run Playwright against the ephemeral Postgres started earlier in this workflow.
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          TEST_USE_INMEMORY: '1'
         run: npm run test:e2e --silent

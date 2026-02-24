@@ -70,6 +70,7 @@ async function handleRequest(req, res) {
       return jsonResponse(res, 200, { status: 'ok' });
     }
 
+
     jsonResponse(res, 404, { error: 'not found' });
   } catch (err) {
     console.error('dev-server error', err && err.stack ? err.stack : err);

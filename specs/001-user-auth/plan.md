@@ -9,8 +9,10 @@ Implement email/password registration, login, and logout for the portal (MVP). U
 
 ## Technical Context
 
+**Frontend Stack (Required)**: React + TypeScript + Next.js (App Router)
 **Language/Version**: TypeScript (Node 18+/LTS)  
 **Primary Dependencies**: Next.js App Router, Prisma, bcrypt, jsonwebtoken, cookie, supertest, jest / vitest  
+**Rationale:** Next.js is chosen for its SSR/SSG capabilities, file-based routing, API routes, and strong TypeScript support, aligning with constitution requirements for type safety, testability, and developer experience.
 **Storage**: PostgreSQL (Prisma ORM)  
 **Testing**: Jest or Vitest + Supertest for integration, and contract tests using jest/supertest  
 **Target Platform**: Node server (serverless or Node-hosted)  
@@ -20,6 +22,8 @@ Implement email/password registration, login, and logout for the portal (MVP). U
 **Scale/Scope**: MVP for initial user base; data model sized for per-user refresh records (expected small volume per user).
 
 ## Constitution Check
+
+- The frontend stack (**React + TypeScript + Next.js**) is mandated for all UI deliverables. This ensures compliance with constitution principles on type safety, accessibility, and maintainability (see Constitution §Technical Principles).
 
 Gate: Spec must be test-first and include Secrets & Rotation plan. Current spec satisfies major constitution requirements (TDD-first, secrets via env vars, REST semantics, TypeScript strict). Remaining constitution items to include in Phase 1 design: explicit `Secrets & Rotation` subsection and CI secret-scan configuration. No blocking violations identified; these items will be added to plan artifacts.
 
@@ -38,25 +42,33 @@ To comply with the InnovatePortal Constitution Testing Principles, do **not** sh
 
 These items will be translated into concrete tasks in `tasks.md` so that placeholder tests are removed and replaced by real tests before merging.
 
+tests/
+
 ## Project Structure (recommended)
 
 ```text
 src/
 ├── auth/
-│   ├── domain/            # business logic: createUser, verifyCredentials, token services
-│   ├── adapters/          # Next.js API route handlers (register/login/logout/refresh)
-│   ├── infra/             # prisma client, email, logger adapters
-│   └── tests/             # unit tests for auth domain
+|   ├── domain/            # business logic: createUser, verifyCredentials, token services
+|   ├── adapters/          # Next.js API route handlers (register/login/logout/refresh)
+|   ├── infra/             # prisma client, email, logger adapters
+|   └── tests/             # unit tests for auth domain
+├── frontend/
+|   ├── app/               # Next.js App Router pages (e.g., login/page.tsx, register/page.tsx)
+|   ├── components/        # Shared React components (LoginForm.tsx, RegisterForm.tsx, etc.)
+|   └── theme/             # Design tokens and theme primitives
 tests/
 ├── integration/
-│   └── auth.*.test.ts
-└── contract/
-
+|   └── auth.*.test.ts
+├── unit/
+|   └── frontend/          # Unit tests for frontend components
+└── e2e/
+  └── frontend.auth.flow.spec.ts
 prisma/
 ├── schema.prisma
 ```
 
-**Structure Decision**: Keep auth logic isolated under `src/auth/*` with thin adapters for Next.js routes per Constitution "layered separation" requirement.
+**Structure Decision**: Keep auth logic isolated under `src/auth/*` with thin adapters for Next.js routes per Constitution "layered separation" requirement. All frontend code must reside under `src/frontend/` using Next.js conventions (`app/`, `components/`, etc.).
 
 ## Phased Tasks (Markdown tasks grouped by phase)
 
