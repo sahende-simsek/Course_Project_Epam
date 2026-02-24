@@ -54,14 +54,10 @@ Phase 9 — Polish & Cross-cutting
 - [x] T032 Finalize tests and remove any feature flags; prepare release notes — specs/001-user-auth/release-notes.md
 
 Phase 10 — Test Hardening & Quality Gates
-- [ ] T033 Replace placeholder/skeleton tests with complete deterministic tests (unit/integration/contract). Remove any "placeholder" markers and ensure each test asserts observable behavior — tests/unit/*, tests/integration/*, tests/contract/*
-- [ ] T034 Add mutation testing (Stryker) configuration and npm script `npm run mutate`; schedule nightly runs on `main` and add documentation for mutation targets — stryker.conf.js
-- [ ] T035 Enforce CI gates: coverage thresholds, TypeScript strict check, lint; update `.github/workflows/auth-tests.yml` to block merges on failures and surface mutation results — .github/workflows/auth-tests.yml
-- [ ] T036 Implement reusable test fixtures and in-memory test DB helpers (`tests/helpers/testDb.ts`, `tests/helpers/createTestUser.ts`) to avoid fragile or slow tests and enable local TDD — tests/helpers/
- - [x] T033 Replace placeholder/skeleton tests with complete deterministic tests (unit/integration/contract). Remove any "placeholder" markers and ensure each test asserts observable behavior — tests/unit/*, tests/integration/*, tests/contract/*
- - [x] T034 Add mutation testing (Stryker) configuration and npm script `npm run mutate`; schedule nightly runs on `main` and add documentation for mutation targets — stryker.conf.js
- - [ ] T035 Enforce CI gates: coverage thresholds, TypeScript strict check, lint; update `.github/workflows/auth-tests.yml` to block merges on failures and surface mutation results — .github/workflows/auth-tests.yml
- - [x] T036 Implement reusable test fixtures and in-memory test DB helpers (`tests/helpers/testDb.ts`, `tests/helpers/createTestUser.ts`) to avoid fragile or slow tests and enable local TDD — tests/helpers/
+- [x] T033 Replace placeholder/skeleton tests with complete deterministic tests (unit/integration/contract). Remove any "placeholder" markers and ensure each test asserts observable behavior — tests/unit/*, tests/integration/*, tests/contract/*
+- [x] T034 Add mutation testing (Stryker) configuration and npm script `npm run mutate`; schedule nightly runs on `main` and add documentation for mutation targets — stryker.conf.js
+- [x] T035 Enforce CI gates: coverage thresholds, TypeScript strict check, lint; update `.github/workflows/auth-tests.yml` to block merges on failures and surface mutation results — .github/workflows/auth-tests.yml
+- [x] T036 Implement reusable test fixtures and in-memory test DB helpers (`tests/helpers/testDb.ts`, `tests/helpers/createTestUser.ts`) to avoid fragile or slow tests and enable local TDD — tests/helpers/
 
 
 Dependencies (high-level)

@@ -21,6 +21,9 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: Run secret scan (gitleaks)
         uses: zricethezav/gitleaks-action@v1
         with:
@@ -51,6 +54,10 @@ jobs:
 
       - name: Contract tests
         run: npm run test:contract --silent
+
+      - name: Coverage & thresholds
+        # Run full coverage and fail if thresholds are not met
+        run: npm test -- --coverage --coverageThreshold='{"global":{"branches":75,"lines":80}}' --silent
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps

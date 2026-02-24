@@ -10,8 +10,9 @@
     "test:integration": "jest --testPathPattern=tests/integration",
     "test:contract": "jest --testPathPattern=tests/contract",
     "test:e2e": "npx playwright test",
-    "coverage": "jest --coverage --coverageDirectory=coverage"
-    ,"mutate": "npx stryker run"
+    "coverage": "jest --coverage --coverageDirectory=coverage",
+    "dev:server": "npx tsc && node ./scripts/dev-server.js",
+    "mutate": "npx stryker run"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

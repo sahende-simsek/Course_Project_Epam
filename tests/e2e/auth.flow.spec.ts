@@ -68,8 +68,10 @@ const mockPrisma = {
 // expose both named and default exports like the real module
 mockPrisma.default = mockPrisma.prisma;
 
-// Use TEST_USE_INMEMORY env flag so the app's prismaClient exports an in-memory stub.
-process.env.TEST_USE_INMEMORY = '1';
+// Use TEST_USE_INMEMORY env flag only when no DATABASE_URL is provided (local dev convenience).
+if (!process.env.DATABASE_URL) {
+  process.env.TEST_USE_INMEMORY = '1';
+}
 
 const { createUser } = require('../../src/auth/domain/userService');
 const { verifyCredentials } = require('../../src/auth/domain/authService');
