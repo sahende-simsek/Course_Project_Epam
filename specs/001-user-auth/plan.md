@@ -23,6 +23,21 @@ Implement email/password registration, login, and logout for the portal (MVP). U
 
 Gate: Spec must be test-first and include Secrets & Rotation plan. Current spec satisfies major constitution requirements (TDD-first, secrets via env vars, REST semantics, TypeScript strict). Remaining constitution items to include in Phase 1 design: explicit `Secrets & Rotation` subsection and CI secret-scan configuration. No blocking violations identified; these items will be added to plan artifacts.
 
+## Constitution Test Compliance Addendum
+
+To comply with the InnovatePortal Constitution Testing Principles, do **not** ship placeholder tests. The following additions are required for this feature's plan:
+
+- Tests MUST be authored in TDD fashion (fail-first) and derive directly from acceptance criteria in `spec.md`.
+- Replace any placeholder or skeleton tests with fully deterministic, isolated tests that assert observable behavior (no tautological assertions).
+- Unit tests MUST use in-memory or fixture-backed dependencies where possible (e.g., Prisma in-memory SQLite for DB-dependent units, `msw` for external HTTP mocks).
+- Integration tests that exercise adapters should run against an ephemeral test database (use `DATABASE_URL` pointing to a disposable Postgres in CI or use Prisma `sqlite` with an explicit migration strategy), and must cleanup state between tests.
+- Add test helpers and fixtures: `tests/helpers/testDb.ts`, `tests/helpers/createTestUser.ts`, and `tests/helpers/fixtures/*` to centralize test setup/teardown and avoid duplication.
+- Add mutation testing configuration (Stryker) and schedule periodic runs on `main` (nightly): mutation score target >= 75%. The initial PR can add `stryker.conf.js` and a `npm run mutate` script.
+- CI gating: enforce TypeScript strict check, lint, unit tests, integration tests, contract tests, and coverage thresholds; mutation testing may run off-peak but results should be visible in PR for maintainers.
+- Coverage & Quality targets for feature branches: minimum 80% lines, 75% branches; the plan should include concrete tests to achieve these targets and document any acceptable deviations.
+
+These items will be translated into concrete tasks in `tasks.md` so that placeholder tests are removed and replaced by real tests before merging.
+
 ## Project Structure (recommended)
 
 ```text
@@ -111,6 +126,18 @@ Estimate: Med
 PHASE G — Docs & Secrets
 - Docs: add `specs/001-user-auth/quickstart.md` with local run + migration steps. Estimate: Lo
 - Secrets & Rotation: document JWT signing key storage (env var `JWT_SECRET` or secrets manager), key rollover process (support key id `kid`, store previous keys for grace window), and migration steps to invalidate old refresh tokens if required. Estimate: Med
+### Secrets & Rotation (detailed)
+
+- **Storage**: Keep signing keys and any sensitive secrets in the deployment secrets manager (e.g., AWS Secrets Manager, Azure Key Vault) or environment variables injected at runtime. Do not commit secrets to repo.
+- **Env vars / keys**: Accept `JWT_SECRET` for single-key mode or `JWT_KEY_<kid>` for multi-key mode plus `JWT_CURRENT_KID` pointing to the current key id. Example envs: `JWT_KEY_rsa1`, `JWT_KEY_rsa2`, `JWT_CURRENT_KID=rsa2`.
+- **Key rotation**: Use `kid` JWT header. On rotation:
+  1. Generate new key, store in secrets manager as `JWT_KEY_newkid`.
+  2. Update `JWT_CURRENT_KID` to `newkid` in deployment.
+  3. Keep previous keys available for a configurable grace window (e.g., 24–72 hours) to validate existing tokens.
+  4. After grace window, remove retired keys and ensure any long-lived refresh tokens are revoked if migration requires.
+- **Refresh-token migration**: If a rotation requires invalidating refresh tokens, run a migration or background job to mark all server-side `RefreshToken` records revoked and force re-login.
+- **CI / Verification**: Add a CI secret-scan step (diff-based) and a test that confirms no secrets are present in test logs. Also verify `JWT_CURRENT_KID` is set in deployment pipelines and rotation steps are documented in `specs/001-user-auth/plan.md#secrets--rotation`.
+
 
 PHASE H — Rollout & Rollback
 - Use feature flag for auth endpoints if rolling out incrementally. Plan DB migrations for forward/backward compatibility (add `RefreshToken` table before enabling refresh flow). Rollback: clear feature flag, do not delete migration rows immediately (allow manual cleanup). Estimate: Med

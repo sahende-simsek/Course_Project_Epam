@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: The examples below include test tasks. Tests are MANDATORY per the Constitution: write failing tests first (TDD) and include unit, integration and contract tests as described in the feature spec. E2E tests are required only for critical user journeys.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -51,6 +51,35 @@ description: "Task list template for feature implementation"
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
+ - [ ] T004 [P] Configure test tooling: add Jest configuration, example `package.json` scripts (`test`, `test:unit`, `test:integration`, `test:contract`, `test:e2e`) and set up Stryker config for mutation testing (or equivalent). Include example CI snippets for running tests and coverage.
+
+Example `package.json` scripts to include in setup:
+
+```json
+"scripts": {
+  "typecheck": "tsc --noEmit",
+  "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+  "test": "jest --coverage",
+  "test:unit": "jest --testPathPattern=tests/unit",
+  "test:integration": "jest --testPathPattern=tests/integration",
+  "test:contract": "jest --testPathPattern=tests/contract",
+  "test:e2e": "npx playwright test",
+  "coverage": "jest --coverage --coverageDirectory=coverage"
+}
+```
+
+Example CI step (GitHub Actions snippet):
+
+```yaml
+- name: Run tests
+  run: |
+    npm ci
+    npm run typecheck
+    npm run lint
+    npm run test:unit
+    npm run test:integration
+    npm run test:contract
+```
 
 ---
 

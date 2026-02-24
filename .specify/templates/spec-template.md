@@ -102,6 +102,17 @@
 
 ## Success Criteria *(mandatory)*
 
+## Constitution Check (mandatory)
+
+- ACTION REQUIRED: Every spec MUST include a `Constitution Check` section that maps this feature's requirements and tests to the project's constitution. At minimum the section MUST declare:
+  - Which constitution principles the feature touches (e.g., Spec-Driven & Test-First, Authentication & Secrets, Developer Experience).
+  - Test artifacts to be added (unit, integration, contract, E2E where applicable) and the TDD plan (write failing tests first).
+  - CI gates required (TypeScript strict, lint, unit + integration tests, secret-scan) and any additional checks.
+  - Any deviations from the constitution and an explicit justification and mitigation plan.
+
+Rationale: This makes constitution compliance explicit and machine-checkable during CI and review.
+
+
 <!--
   ACTION REQUIRED: Define measurable success criteria.
   These must be technology-agnostic and measurable.
