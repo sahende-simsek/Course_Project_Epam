@@ -1,0 +1,60 @@
+name: Auth feature CI (placeholder)
+
+on:
+  push:
+    branches: [ '001-user-auth', 'main' ]
+  pull_request:
+    branches: [ 'main' ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install
+        run: npm ci
+
+      - name: Run secret scan (gitleaks)
+        uses: zricethezav/gitleaks-action@v1
+        with:
+          args: --path=. --report=gitleaks-report.json
+
+      - name: Start Postgres service
+        uses: harmon758/postgres-action@v1
+        with:
+          postgresql version: '13'
+
+      - name: Set DATABASE_URL
+        run: echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres?schema=public" >> $GITHUB_ENV
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit --silent
+
+      - name: Integration tests
+        run: npm run test:integration --silent
+
+      - name: Contract tests
+        run: npm run test:contract --silent
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: E2E tests (Playwright)
+        # Run Playwright against the ephemeral Postgres started earlier in this workflow.
+        run: npm run test:e2e --silent
