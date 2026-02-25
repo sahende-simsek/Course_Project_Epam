@@ -1,6 +1,9 @@
 const http = require('http');
 const url = require('url');
 
+// Simple runtime guard for duplicate emails when using the in-memory adapter.
+const _registeredEmails = new Set();
+
 // Use in-memory Prisma when DATABASE_URL is not set (same convention as tests)
 if (!process.env.DATABASE_URL) {
   process.env.TEST_USE_INMEMORY = '1';
@@ -44,17 +47,30 @@ async function handleRequest(req, res) {
     if (method === 'POST' && parsed.pathname === '/api/auth/register') {
       const { email, password } = data;
       if (!email || !password) return jsonResponse(res, 400, { error: 'email and password required' });
-      const user = await createUser(email, password);
-      return jsonResponse(res, 201, { id: user.id, email: user.email, createdAt: user.createdAt });
+      // runtime duplicate guard (helps in-memory adapter)
+      const norm = (email || '').toLowerCase().trim();
+      if (_registeredEmails.has(norm)) return jsonResponse(res, 409, { error: 'email already registered' });
+      try {
+        const user = await createUser(email, password);
+        _registeredEmails.add(norm);
+        return jsonResponse(res, 201, { id: user.id, email: user.email, createdAt: user.createdAt });
+      } catch (err) {
+        if (err && err.status === 409) return jsonResponse(res, 409, { error: 'email already registered' });
+        throw err;
+      }
     }
 
     if (method === 'POST' && parsed.pathname === '/api/auth/login') {
       const { email, password } = data;
       if (!email || !password) return jsonResponse(res, 400, { error: 'email and password required' });
-      const user = await verifyCredentials(email, password);
-      if (!user) return jsonResponse(res, 401, { error: 'invalid credentials' });
-      const token = generateAccessToken(user);
-      return jsonResponse(res, 200, { accessToken: token });
+      try {
+        const user = await verifyCredentials(email, password);
+        const token = generateAccessToken(user);
+        return jsonResponse(res, 200, { accessToken: token });
+      } catch (err) {
+        if (err && err.status === 401) return jsonResponse(res, 401, { error: 'invalid email or password' });
+        throw err;
+      }
     }
 
     if (method === 'POST' && parsed.pathname === '/api/auth/refresh') {

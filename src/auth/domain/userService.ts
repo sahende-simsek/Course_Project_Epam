@@ -8,6 +8,14 @@ export async function createUser(email: string, password: string) {
     throw new Error('Password validation failed');
   }
 
+  // Prevent duplicate emails in both real DB and in-memory test client.
+  const existing = await prisma.user.findUnique({ where: { email: normalized } });
+  if (existing) {
+    const e = new Error('Conflict: email already exists');
+    (e as any).status = 409;
+    throw e;
+  }
+
   const passwordHash = await hashPassword(password);
 
   try {

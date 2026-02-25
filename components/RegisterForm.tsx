@@ -14,12 +14,9 @@ export default function RegisterForm() {
     setError(null);
     setLoading(true);
     try {
-      console.log('RegisterForm: submitting', { email });
       await AuthClient.register(email, password);
-      console.log('RegisterForm: register success, about to navigate to /login');
       // after successful registration, navigate to login page
       router.push('/login');
-      console.log('RegisterForm: router.push called to /login');
     } catch (err: any) {
       setError(err?.message ?? "Register failed");
     } finally {

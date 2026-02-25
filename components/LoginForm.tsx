@@ -14,12 +14,9 @@ export default function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      console.log('LoginForm: submitting', { email });
       await AuthClient.login(email, password);
-      console.log('LoginForm: login success, about to navigate to /');
-      // navigate to app root (dashboard) on success
-      router.push('/');
-      console.log('LoginForm: router.push called to /');
+      // navigate to welcome page (placeholder dashboard) on success
+      router.push('/welcome');
     } catch (err: any) {
       setError(err?.message ?? "Login failed");
     } finally {
