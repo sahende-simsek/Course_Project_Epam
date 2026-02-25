@@ -21,7 +21,7 @@ export async function verifyCredentials(email: string, password: string) {
   // update lastLoginAt
   await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
-  return { id: user.id, email: user.email };
+  return { id: user.id, email: user.email, role: (user as any).role };
 }
 
 export default { verifyCredentials };

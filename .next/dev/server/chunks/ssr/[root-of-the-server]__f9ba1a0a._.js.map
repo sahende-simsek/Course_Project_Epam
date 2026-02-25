@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Victus/Desktop/Course_Project/app/welcome/page.tsx"],"sourcesContent":["export default function WelcomePage(){\r\n  return (\r\n    <main style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh'}}>\r\n      <div style={{textAlign:'center'}}> \r\n        <h1>Welcome</h1>\r\n        <p>This is a placeholder page. Implement your dashboard here.</p>\r\n      </div>\r\n    </main>\r\n  )\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAK,OAAO;YAAC,SAAQ;YAAO,YAAW;YAAS,gBAAe;YAAS,QAAO;QAAO;kBACrF,cAAA,8OAAC;YAAI,OAAO;gBAAC,WAAU;YAAQ;;8BAC7B,8OAAC;8BAAG;;;;;;8BACJ,8OAAC;8BAAE;;;;;;;;;;;;;;;;;AAIX"}}]
+}

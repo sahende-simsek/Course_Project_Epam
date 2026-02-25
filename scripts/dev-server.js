@@ -15,6 +15,10 @@ const verifyCredentials = require('../dist/auth/domain/authService').verifyCrede
 const generateAccessToken = require('../dist/auth/domain/tokenService').generateAccessToken;
 const rotateRefreshToken = require('../dist/auth/domain/refreshService').rotateRefreshToken;
 const revokeAllRefreshTokensForUser = require('../dist/auth/domain/refreshService').revokeAllRefreshTokensForUser;
+const createIdea = require('../dist/auth/domain/ideaService').createIdea;
+const listIdeasForUser = require('../dist/auth/domain/ideaService').listIdeasForUser;
+const getIdeaForUser = require('../dist/auth/domain/ideaService').getIdeaForUser;
+const evaluateIdea = require('../dist/auth/domain/evaluationService').evaluateIdea;
 
 function jsonResponse(res, status, obj) {
   const payload = JSON.stringify(obj);
@@ -87,6 +91,118 @@ async function handleRequest(req, res) {
       return jsonResponse(res, 204, {});
     }
 
+    // Ideas API — minimal JWT-based auth using accessToken
+    if (method === 'POST' && parsed.pathname === '/api/ideas') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const { title, description, category } = data;
+      const idea = await createIdea({ authorId: userId, title, description, category });
+      return jsonResponse(res, 201, idea);
+    }
+
+    if (method === 'GET' && parsed.pathname === '/api/ideas') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      let role;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+        role = decoded && decoded.role; // optional: if role included
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      // For dev-server we rely on domain service to enforce FR-011 using DB role; here we pass role if present, otherwise SUBMITTER.
+      const Role = require('@prisma/client').Role;
+      const effectiveRole = role || Role.SUBMITTER;
+
+      const ideas = await listIdeasForUser(userId, effectiveRole);
+      return jsonResponse(res, 200, ideas);
+    }
+
+    if (method === 'GET' && parsed.pathname && parsed.pathname.startsWith('/api/ideas/')) {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      let role;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+        role = decoded && decoded.role;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const Role = require('@prisma/client').Role;
+      const effectiveRole = role || Role.SUBMITTER;
+      const parts = parsed.pathname.split('/');
+      const ideaId = parts[parts.length - 1];
+      const idea = await getIdeaForUser(ideaId, userId, effectiveRole);
+      return jsonResponse(res, 200, idea);
+    }
+
+    if (method === 'POST' && parsed.pathname === '/api/ideas/attach') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const { ideaId, filename, url: fileUrl, mimetype, size } = data;
+      const prisma = require('../dist/auth/infra/prismaClient').default;
+      const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+      if (!idea) return jsonResponse(res, 404, { error: 'Idea not found' });
+      if (idea.authorId !== userId) return jsonResponse(res, 403, { error: 'Only the submitter can attach files' });
+
+      await prisma.attachment.deleteMany({ where: { ideaId } });
+      const attachment = await prisma.attachment.create({ data: { ideaId, filename, url: fileUrl, mimetype, size } });
+      return jsonResponse(res, 201, attachment);
+    }
+
+    if (method === 'POST' && parsed.pathname === '/api/evaluations') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let evaluatorId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        evaluatorId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const { ideaId, decision, comments } = data;
+      const result = await evaluateIdea({ ideaId, evaluatorId, decision, comments });
+      return jsonResponse(res, 201, result);
+    }
+
     // Health
     if (method === 'GET' && parsed.pathname === '/_health') {
       return jsonResponse(res, 200, { status: 'ok' });
@@ -113,5 +229,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Dev API server listening on http://localhost:${PORT}`);
-  console.log('Endpoints: POST /api/auth/register, POST /api/auth/login, POST /api/auth/refresh, POST /api/auth/logout, GET /_health');
+  console.log('Endpoints: POST /api/auth/register, POST /api/auth/login, POST /api/auth/refresh, POST /api/auth/logout,');
+  console.log('           POST /api/ideas, GET /api/ideas, GET /api/ideas/:id, POST /api/ideas/attach, POST /api/evaluations, GET /_health');
 });

@@ -14,9 +14,40 @@ export default function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await AuthClient.login(email, password);
-      // navigate to welcome page (placeholder dashboard) on success
-      router.push('/welcome');
+      const session = await AuthClient.login(email, password);
+
+      // basit client-side oturum saklama: token ve email'i localStorage'a yaz
+      if (typeof window !== 'undefined') {
+        try {
+          const access = (session as any)?.accessToken;
+          if (access && typeof access.token === 'string') {
+            window.localStorage.setItem('accessToken', access.token);
+          }
+          window.localStorage.setItem('userEmail', email);
+        } catch {
+          // localStorage hataları oturumu bozmasın
+        }
+      }
+      // JWT payload icindeki role alanina gore sayfa sec
+      let role: string | undefined;
+      try {
+        const raw = (session as any)?.accessToken?.token;
+        if (typeof raw === 'string') {
+          const parts = raw.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            role = payload?.role;
+          }
+        }
+      } catch {
+        // decode hatasi olursa role bos kalir
+      }
+
+      if (role === 'EVALUATOR') {
+        router.push('/welcome-admin');
+      } else {
+        router.push('/welcome');
+      }
     } catch (err: any) {
       setError(err?.message ?? "Login failed");
     } finally {

@@ -90,8 +90,20 @@ Implementation strategy (MVP-first)
 
 Validation: ALL tasks follow the required checklist format: each line starts with `- [ ]`, contains a Task ID `T###`, includes `[USn]` where applicable, includes `[P]` when parallelizable, and specifies a concrete file path.
 
+## Phase 12 — Constitution Alignment: Roles, Ideas, Evaluation
+- [x] T046 [US1] Ensure `User` model includes basic role distinction (`SUBMITTER`, `EVALUATOR`/`ADMIN`) and update Prisma schema (field `role` with default `SUBMITTER`) — prisma/schema.prisma
+- [x] T047 [US3] Add `Idea`, `Attachment` and `Evaluation` models plus `IdeaStatus` enum (`SUBMITTED`, `UNDER_REVIEW`, `ACCEPTED`, `REJECTED`) to Prisma schema — prisma/schema.prisma
+- [x] T048 [US3] Implement domain service for basic idea submission (title, description, category) — src/auth/domain/ideaService.ts
+- [x] T049 [US3] Implement API handler for idea submission endpoint `POST /api/ideas` that calls domain service and enforces authenticated submitter role — src/auth/adapters/ideas.submit.route.ts
+- [x] T050 [US3] Add single file attachment support per idea in backend (API + storage abstraction) — src/auth/adapters/ideas.attach.route.ts
+- [x] T051 [US4] Implement idea listing and detail retrieval endpoints (`GET /api/ideas`, `GET /api/ideas/{id}`) enforcing FR-011 visibility rule (Admin/Evaluator see all ideas; Submitter sees only own ideas) — src/auth/adapters/ideas.list.route.ts
+- [x] T052 [US4] Implement frontend pages for idea listing and detail view that respect FR-011 visibility rule (filtered list for submitter vs full list for admin/evaluator) — src/frontend/app/ideas/page.tsx, src/frontend/app/ideas/[id]/page.tsx
+- [x] T053 [US5] Implement evaluation workflow domain logic (accept/reject with comments, updating `IdeaStatus`) — src/auth/domain/evaluationService.ts
+- [x] T054 [US5] Implement evaluation endpoint `POST /api/evaluations/{ideaId}` restricted to evaluator/admin role — src/auth/adapters/evaluations.route.ts
+- [x] T055 [US5] Add integration tests covering status transitions and evaluation comments — tests/integration/ideas.evaluation.test.ts
+
 File: specs/001-user-auth/tasks.md
 
 Summary:
-- Total tasks: 32
-- Tasks per story: `US1` (T008-T012 = 5), `US2` (T013-T017 = 5), `US3` (T018-T019 = 2), Cross-story/Foundational/Other = remaining tasks
+- Total tasks: 43 (including Phase 12)
+- New constitution-alignment tasks: T046–T055

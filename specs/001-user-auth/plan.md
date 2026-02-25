@@ -96,16 +96,31 @@ PHASE C — API Adapters (Next.js App Router)
 - API: `POST /api/auth/refresh` — adapter at `src/auth/adapters/refresh/route.ts`. Read refresh cookie, call `refreshService.rotate`, set new cookie, return `200 {accessToken,expiresIn}`. On replay detection, revoke all related refresh tokens for the user and log event. Estimate: Hi
 
 PHASE D — DB Migration (Prisma)
-- Migration: `RefreshToken` model (Prisma snippet below). Add indexes on `tokenId`, `userId`, and `expiresAt`. Include cleanup TTL job. Estimate: Med
+- Migration: `User`, `RefreshToken`, `Idea`, `Attachment`, `Evaluation` modelleri. Add indexes on critical fields. Include cleanup TTL job for tokens. Estimate: Med
 
 Prisma model snippet:
 
 ```prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(SUBMITTER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ideas     Idea[]
+}
+
+enum Role {
+  SUBMITTER
+  EVALUATOR
+}
+
 model RefreshToken {
   id           String   @id @default(uuid())
   tokenId      String   @unique
-  userId       String   @index
-  parentTokenId String? 
+  userId       String
+  parentTokenId String?
   issuedAt     DateTime @default(now())
   lastUsedAt   DateTime?
   expiresAt    DateTime
@@ -113,15 +128,66 @@ model RefreshToken {
   ip           String?
   userAgent    String?
 }
+
+model Idea {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  category    String
+  status      IdeaStatus @default(SUBMITTED)
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  attachments Attachment[]
+  evaluations Evaluation[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  ideaId    String
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  filename  String
+  url       String   // URL to the stored file (e.g., S3)
+  mimetype  String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+model Evaluation {
+  id        String   @id @default(cuid())
+  ideaId    String
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  evaluatorId String
+  comments  String
+  decision  IdeaStatus
+  createdAt DateTime @default(now())
+}
+
+enum IdeaStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}
 ```
 
 Cleanup policy: background job (daily) to delete revoked/expired tokens older than 30 days.
 
-PHASE E — Integration & Contract Test Matrix
+PHASE E — API Adapters (Next.js App Router) - Part 2: Idea & Evaluation
+- API: `POST /api/ideas` — (Auth: SUBMITTER) Adapter at `src/ideas/adapters/create/route.ts`. Request `{title, description, category}`. Success: `201 { ...idea }`.
+- API: `POST /api/ideas/{id}/attach` — (Auth: SUBMITTER, owner) Adapter for file uploads. Handles multipart/form-data.
+- API: `GET /api/ideas` — (Auth: any) List ideas.
+- API: `GET /api/ideas/{id}` — (Auth: any) View a single idea with attachments.
+- API: `POST /api/evaluations/{ideaId}` — (Auth: EVALUATOR) Adapter at `src/evaluations/adapters/create/route.ts`. Request `{ comments, decision }`. Updates `Idea.status`. Success: `201 { ...evaluation }`.
+
+PHASE F — Integration & Contract Test Matrix
 - Contract tests: verify error shape `{ error: { code, message, fields? } }` for all endpoints. Estimate: Med
 - Integration: run all `tests/integration/auth.*.test.ts` in CI matrix. CI command: `npm run test:integration`. Estimate: Med
+- Integration: `tests/integration/ideas.*.test.ts` for idea submission and viewing.
+- Integration: `tests/integration/evaluations.*.test.ts` for admin accept/reject flow.
 
-PHASE F — CI / Pipeline Changes
+PHASE G — CI / Pipeline Changes
 - Add steps: `npm ci`, `npm run build` (tsc check), `npm run test` (unit), `npm run test:integration` (integration), `npm run test:contract`, `secret-scan` (diff-based). Example CI snippet (GitHub Actions or pipeline):
 
 ```yaml
@@ -135,7 +201,7 @@ PHASE F — CI / Pipeline Changes
 
 Estimate: Med
 
-PHASE G — Docs & Secrets
+PHASE H — Docs & Secrets
 - Docs: add `specs/001-user-auth/quickstart.md` with local run + migration steps. Estimate: Lo
 - Secrets & Rotation: document JWT signing key storage (env var `JWT_SECRET` or secrets manager), key rollover process (support key id `kid`, store previous keys for grace window), and migration steps to invalidate old refresh tokens if required. Estimate: Med
 ### Secrets & Rotation (detailed)
@@ -151,15 +217,15 @@ PHASE G — Docs & Secrets
 - **CI / Verification**: Add a CI secret-scan step (diff-based) and a test that confirms no secrets are present in test logs. Also verify `JWT_CURRENT_KID` is set in deployment pipelines and rotation steps are documented in `specs/001-user-auth/plan.md#secrets--rotation`.
 
 
-PHASE H — Rollout & Rollback
+PHASE I — Rollout & Rollback
 - Use feature flag for auth endpoints if rolling out incrementally. Plan DB migrations for forward/backward compatibility (add `RefreshToken` table before enabling refresh flow). Rollback: clear feature flag, do not delete migration rows immediately (allow manual cleanup). Estimate: Med
 
-PHASE I — Observability & Security Checklist
+PHASE J — Observability & Security Checklist
 - Structured logs for events: `auth_event` with fields: `eventType`, `userId?`, `ip`, `userAgent`, `tokenId?`, `requestId`, `timestamp`.  
 - Alerting: replay detection log events should trigger high-severity alert for investigation.  
 - Rate-limiting: recommend default thresholds (TBD): 5 attempts per IP per minute for login endpoints, exponential backoff and temporary lockout per account after 5 failed attempts in 15 minutes. Document in plan and test via brute-force simulation. Estimate: Lo
 
-PHASE J — Effort Estimates & Order
+PHASE K — Effort Estimates & Order
 - Order: Tests (TDD) → Domain → API adapters → Migrations → CI → Docs → Release.  
 - Provide Lo/Med/Hi estimates inline above for each task. Total implementation ~ several days depending on infra and team.
 
@@ -168,15 +234,12 @@ PHASE J — Effort Estimates & Order
 - [ ] Failing unit tests added for validators and hashing  
 - [ ] Failing integration tests for registration and login (skeleton)  
 - [ ] Basic `createUser` and `verifyCredentials` domain functions with unit tests  
-- [ ] Prisma migration `RefreshToken` model added (draft)  
+- [ ] Prisma migration with all new models (`User`, `Idea`, etc.) added (draft)
 - [ ] README/quickstart entry for running tests locally
 
 ## Research & Open Questions
 
 - All major clarifications resolved: cookie-based refresh tokens + rotate-on-use + 7-day TTL + 1-hour access TTL.  
 - TBD: exact rate-limiting thresholds and lockout policy — pick sensible defaults in Phase 1 and make configurable via env.
-
----
-
-Generated artifacts: `research.md`, `data-model.md`, `quickstart.md`, `contracts/auth-api.md` (created alongside this plan).
+- TBD: File storage solution for attachments (e.g., local disk for MVP, S3 for production).
 

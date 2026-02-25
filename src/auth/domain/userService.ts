@@ -1,6 +1,26 @@
 import { validateEmail, validatePassword } from './validators';
 import { hashPassword } from './hash';
 import prisma from '../infra/prismaClient';
+import config from '../../config';
+import { Role } from '@prisma/client';
+
+function deriveRoleForEmail(normalizedEmail: string): Role {
+  const emailLower = normalizedEmail.toLowerCase();
+
+  const adminEmails = config.ADMIN_EMAILS || [];
+  if (adminEmails.some((e) => e === emailLower)) {
+    return Role.EVALUATOR;
+  }
+
+  const atIndex = emailLower.lastIndexOf('@');
+  const domain = atIndex !== -1 ? emailLower.slice(atIndex + 1) : '';
+  const adminDomains = config.ADMIN_EMAIL_DOMAINS || [];
+  if (domain && adminDomains.some((d) => d === domain)) {
+    return Role.EVALUATOR;
+  }
+
+  return Role.SUBMITTER;
+}
 
 export async function createUser(email: string, password: string) {
   const normalized = validateEmail(email);
@@ -17,16 +37,19 @@ export async function createUser(email: string, password: string) {
   }
 
   const passwordHash = await hashPassword(password);
+  const role = deriveRoleForEmail(normalized);
 
   try {
     const user = await prisma.user.create({
       data: {
         email: normalized,
         passwordHash,
+        role,
       },
       select: {
         id: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });

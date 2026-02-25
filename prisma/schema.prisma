@@ -8,27 +8,75 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
+  id           String    @id @default(uuid())
+  email        String    @unique
   passwordHash String
-  status      String   @default("active")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  lastLoginAt DateTime?
+  status       String    @default("active")
+  role         Role      @default(SUBMITTER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+  ideas        Idea[]
 }
 
 model RefreshToken {
-  id            String   @id @default(uuid())
-  tokenId       String   @unique
+  id            String    @id @default(uuid())
+  tokenId       String    @unique
   userId        String
   parentTokenId String?
-  issuedAt      DateTime @default(now())
+  issuedAt      DateTime  @default(now())
   lastUsedAt    DateTime?
   expiresAt     DateTime
-  revoked       Boolean  @default(false)
+  revoked       Boolean   @default(false)
   ip            String?
   userAgent     String?
 
   @@index([userId, expiresAt])
 }
 
+model Idea {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  category    String
+  status      IdeaStatus   @default(SUBMITTED)
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id])
+  attachments Attachment[]
+  evaluations Evaluation[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  ideaId    String
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  filename  String
+  url       String
+  mimetype  String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+model Evaluation {
+  id          String     @id @default(cuid())
+  ideaId      String
+  idea        Idea       @relation(fields: [ideaId], references: [id])
+  evaluatorId String
+  comments    String
+  decision    IdeaStatus
+  createdAt   DateTime   @default(now())
+}
+
+enum Role {
+  SUBMITTER
+  EVALUATOR
+}
+
+enum IdeaStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}

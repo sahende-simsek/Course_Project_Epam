@@ -11,7 +11,11 @@
 
 - Q: Token/session strategy for auth  A: B - Access JWT + refresh tokens with server-side revocation (refresh tokens stored/rotated server-side; HttpOnly refresh cookie recommended).
 - Q: Refresh token storage method → A: A - HttpOnly, Secure, SameSite refresh cookie set by server (server-side rotation & revocation).
- - Q: Refresh token lifetime & rotation policy → A: A - Rotate-on-use with short TTL (7 days); refresh tokens rotated on each use and stored server-side for revocation.
+- Q: Refresh token lifetime & rotation policy → A: A - Rotate-on-use with short TTL (7 days); refresh tokens rotated on each use and stored server-side for revocation.
+
+### Session 2026-02-25
+
+- Q: Idea listing visibility by role → A: Admin/Evaluator can list and view all ideas; Submitter can only list and view their own ideas.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -83,6 +87,8 @@ As a logged-in user, I want to log out so that I can secure my account.
 - **FR-008**: System MUST enforce rate limiting or throttling on auth endpoints to reduce brute-force risk (document exact limits in plan).
 - **FR-009**: System MUST validate and sanitize all inputs to prevent injection; DB access MUST use parameterized queries (covered by ORM usage in plan).
 - **FR-010**: System MUST be covered by automated tests (unit, contract, integration) that run in CI before merge.
+
+- **FR-011**: For idea listing and viewing in the MVP scope, the system MUST enforce that Admin/Evaluator roles can list and view all ideas, while Submitter users can only list and view ideas they have created.
 
 ### Key Entities
 
