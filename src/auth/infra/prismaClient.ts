@@ -77,7 +77,7 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			create: async ({ data }: any) => {
 				const id = `idea-${ideaCounter++}`;
 				const now = new Date();
-				const rec = {
+				const rec: any = {
 					id,
 					title: data.title,
 					description: data.description,
@@ -90,19 +90,33 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				ideas[id] = rec;
 				return rec;
 			},
-			findMany: async ({ where, orderBy }: any = {}) => {
-				let list = Object.values(ideas);
+			findMany: async ({ where, include, orderBy }: any = {}) => {
+				let list: any[] = Object.values(ideas);
 				if (where && where.authorId) {
 					list = list.filter((i: any) => i.authorId === where.authorId);
 				}
 				if (orderBy && orderBy.createdAt === 'desc') {
 					list = list.sort((a: any, b: any) => (b.createdAt as any) - (a.createdAt as any));
 				}
+				if (include && include.attachments) {
+					list = list.map((idea: any) => ({
+						...idea,
+						attachments: Object.values(attachments).filter((att: any) => att.ideaId === idea.id),
+					}));
+				}
 				return list;
 			},
-			findUnique: async ({ where }: any) => {
+			findUnique: async ({ where, include }: any) => {
 				if (!where?.id) return null;
-				return ideas[where.id] ?? null;
+				const idea = ideas[where.id] ?? null;
+				if (!idea) return null;
+				if (include && include.attachments) {
+					return {
+						...idea,
+						attachments: Object.values(attachments).filter((att: any) => att.ideaId === idea.id),
+					};
+				}
+				return idea;
 			},
 			update: async ({ where, data }: any) => {
 				const idea = ideas[where.id];
@@ -127,17 +141,36 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			create: async ({ data }: any) => {
 				const id = `att-${attachmentCounter++}`;
 				const now = new Date();
-				const rec = {
+				const rec: any = {
 					id,
 					ideaId: data.ideaId,
 					filename: data.filename,
 					url: data.url,
 					mimetype: data.mimetype,
 					size: data.size,
+					content: data.content,
 					createdAt: now,
 				};
 				attachments[id] = rec;
 				return rec;
+			},
+			findUnique: async ({ where, include }: any) => {
+				if (!where?.id) return null;
+				const att = attachments[where.id] ?? null;
+				if (!att) return null;
+				if (include && include.idea) {
+					return {
+						...att,
+						idea: ideas[att.ideaId] ?? null,
+					};
+				}
+				return att;
+			},
+			update: async ({ where, data }: any) => {
+				const att = attachments[where.id];
+				if (!att) return null;
+				Object.assign(att, data);
+				return att;
 			},
 		},
 		evaluation: {

@@ -45,6 +45,22 @@ export default function WelcomePage() {
     return allowedExtensions.includes(ext as (typeof allowedExtensions)[number]);
   };
 
+  const readFileAsBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === "string") {
+          const base64 = result.includes(",") ? result.split(",")[1] : result;
+          resolve(base64);
+        } else {
+          reject(new Error("Failed to read file"));
+        }
+      };
+      reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
   const renderStatus = (status?: string) => {
     switch (status) {
       case "ACCEPTED":
@@ -136,12 +152,11 @@ export default function WelcomePage() {
 
       const created = (await res.json()) as Idea;
 
-      // Optional: multiple attachments per idea (metadata only).
-      let optimisticAttachments: Idea["attachments"] | undefined;
       if (files.length > 0) {
         try {
+          const contents = await Promise.all(files.map((file) => readFileAsBase64(file)));
           await Promise.all(
-            files.map((file) =>
+            files.map((file, index) =>
               fetch("http://localhost:3000/api/ideas/attach", {
                 method: "POST",
                 headers: {
@@ -151,34 +166,20 @@ export default function WelcomePage() {
                 body: JSON.stringify({
                   ideaId: created.id,
                   filename: file.name,
-                  url: `/attachments/${encodeURIComponent(file.name)}`,
                   mimetype: file.type || "application/octet-stream",
                   size: file.size,
+                  contentBase64: contents[index],
                 }),
               })
             )
           );
-
-          optimisticAttachments = files.map((file, index) => ({
-            id: `${created.id}-attachment-${index}`,
-            filename: file.name,
-            url: `/attachments/${encodeURIComponent(file.name)}`,
-            mimetype: file.type || "application/octet-stream",
-            size: file.size,
-          }));
         } catch {
-          // attachment hatası ana akışı bozmasın
+          // Attachment errors should not block main idea submission.
         }
       }
 
-      // Optimistic update: backend'den liste çekilemese bile yeni fikri lokalde göster.
-      setIdeas((prev) => [
-        {
-          ...created,
-          attachments: optimisticAttachments ?? created.attachments,
-        },
-        ...prev,
-      ]);
+      // Optimistic update for idea itself; attachments will be refreshed from backend.
+      setIdeas((prev) => [created, ...prev]);
 
       setTitle("");
       setDescription("");
@@ -244,7 +245,17 @@ export default function WelcomePage() {
           </div>
 
           <div className="idea-form-field">
-            <label htmlFor="attachment">Attachment (single file)</label>
+            <label htmlFor="attachment">Attachments (you can select multiple files)</label>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Choose files
+              </button>
+              <span>{files.length > 0 ? `${files.length} file(s) selected` : "No files selected"}</span>
+            </div>
             <input
               id="attachment"
               name="attachment"
@@ -252,7 +263,41 @@ export default function WelcomePage() {
               multiple
               ref={fileInputRef}
               onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])}
+              style={{ display: "none" }}
             />
+            <small>
+              Allowed file types: pdf, doc, docx, xls, xlsx, ppt, pptx.
+            </small>
+            {files.length > 0 && (
+              <ul style={{ marginTop: "0.5rem" }}>
+                {files.map((file, index) => (
+                  <li key={`${file.name}-${index}`}>
+                    {file.name}{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFiles((prev) => {
+                          const next = [...prev];
+                          next.splice(index, 1);
+
+                          // Dosya input'unu da güncel listeyle senkronize et
+                          if (fileInputRef.current) {
+                            const dt = new DataTransfer();
+                            next.forEach((f) => dt.items.add(f));
+                            fileInputRef.current.files = dt.files;
+                          }
+
+                          return next;
+                        });
+                      }}
+                      style={{ marginLeft: "0.5rem" }}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="idea-form-actions">
@@ -295,7 +340,7 @@ export default function WelcomePage() {
                 )}
                 {idea.attachments && idea.attachments.length > 0 && (
                   <div style={{ marginTop: "0.25rem" }}>
-                    <strong>Attachment:</strong>{" "}
+                    <strong>Attachments:</strong>{" "}
                     {idea.attachments.map((att) => (
                       <span key={att.id}>
                         <a href={att.url} target="_blank" rel="noopener noreferrer">

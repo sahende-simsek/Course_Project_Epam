@@ -184,7 +184,7 @@ export default function WelcomeAdminPage() {
                 </p>
                 {idea.attachments && idea.attachments.length > 0 && (
                   <div style={{ marginTop: "0.25rem" }}>
-                    <strong>Attachment:</strong>{" "}
+                    <strong>Attachments:</strong>{" "}
                     {idea.attachments.map((att) => (
                       <span key={att.id}>
                         <a href={att.url} target="_blank" rel="noopener noreferrer">

@@ -193,7 +193,7 @@ async function handleRequest(req, res) {
         return jsonResponse(res, 401, { error: 'invalid token' });
       }
 
-      const { ideaId, filename, url: fileUrl, mimetype, size } = data;
+      const { ideaId, filename, contentBase64, mimetype, size } = data;
       const prisma = require('../dist/auth/infra/prismaClient').default;
       const allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
       const idx = filename && filename.lastIndexOf('.');
@@ -208,12 +208,72 @@ async function handleRequest(req, res) {
         if (!idea) return jsonResponse(res, 404, { error: 'Idea not found' });
         if (idea.authorId !== userId) return jsonResponse(res, 403, { error: 'Only the submitter can attach files' });
 
-        const attachment = await prisma.attachment.create({ data: { ideaId, filename, url: fileUrl, mimetype, size } });
+        let contentBuffer = null;
+        if (typeof contentBase64 === 'string' && contentBase64.length > 0) {
+          try {
+            contentBuffer = Buffer.from(contentBase64, 'base64');
+          } catch (_) {
+            // fall through to validation error
+          }
+        }
+
+        if (!contentBuffer) {
+          return jsonResponse(res, 400, { error: 'invalid attachment content' });
+        }
+
+        const createdAttachment = await prisma.attachment.create({
+          data: {
+            ideaId,
+            filename,
+            url: '',
+            mimetype: mimetype || 'application/octet-stream',
+            size,
+            content: contentBuffer,
+          },
+        });
+
+        const publicUrl = `http://localhost:${PORT}/api/attachments/${createdAttachment.id}`;
+
+        const attachment = await prisma.attachment.update({
+          where: { id: createdAttachment.id },
+          data: { url: publicUrl },
+        });
+
         return jsonResponse(res, 201, attachment);
       } catch (err) {
         const status = (err && err.status) || 400;
         const message = (err && err.message) || 'failed to attach file';
         return jsonResponse(res, status, { error: message });
+      }
+    }
+
+    if (method === 'GET' && parsed.pathname && parsed.pathname.startsWith('/api/attachments/')) {
+
+      const prisma = require('../dist/auth/infra/prismaClient').default;
+      const parts = parsed.pathname.split('/');
+      const attachmentId = parts[parts.length - 1];
+
+      try {
+        const attachment = await prisma.attachment.findUnique({
+          where: { id: attachmentId },
+          include: { idea: true },
+        });
+
+        if (!attachment) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Attachment not found' }));
+        }
+
+        res.writeHead(200, {
+          'Content-Type': attachment.mimetype || 'application/octet-stream',
+          'Content-Length': attachment.size || undefined,
+          'Content-Disposition': `inline; filename="${attachment.filename}"`,
+        });
+
+        return res.end(attachment.content);
+      } catch (err) {
+        console.error('failed to serve attachment', err && err.stack ? err.stack : err);
+        return jsonResponse(res, 500, { error: 'failed to load attachment' });
       }
     }
 
@@ -269,5 +329,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`Dev API server listening on http://localhost:${PORT}`);
   console.log('Endpoints: POST /api/auth/register, POST /api/auth/login, POST /api/auth/refresh, POST /api/auth/logout,');
-  console.log('           POST /api/ideas, GET /api/ideas, GET /api/ideas/:id, POST /api/ideas/attach, POST /api/evaluations, GET /_health');
+  console.log('           POST /api/ideas, GET /api/ideas, GET /api/ideas/:id, POST /api/ideas/attach, GET /api/attachments/:id, POST /api/evaluations, GET /_health');
 });
