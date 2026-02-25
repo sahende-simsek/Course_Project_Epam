@@ -12,6 +12,11 @@ describe('Frontend API integration (auth)', () => {
   jest.setTimeout(20000);
 
   test('register -> login -> refresh -> logout (smoke)', async () => {
+  if (!process.env.TEST_BASE_URL) {
+    console.warn('Skipping frontend API integration test: TEST_BASE_URL not set');
+    return;
+  }
+
     const email = `int+${Date.now()}@example.com`;
     const password = 'Password123!';
 
