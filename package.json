@@ -7,7 +7,7 @@
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --coverage",
     "test:unit": "jest --testPathPattern=tests/unit --runInBand",
-    "test:integration": "jest --testPathPattern=tests/integration",
+    "test:integration": "jest --testPathPattern=tests/integration --runInBand",
     "test:contract": "jest --testPathPattern=tests/contract",
     "test:e2e": "set PLAYWRIGHT_BASE_URL=http://localhost:3001&& npx playwright test tests/e2e/frontend/frontend.playwright.spec.ts",
     "coverage": "jest --coverage --coverageDirectory=coverage",
