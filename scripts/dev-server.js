@@ -23,7 +23,13 @@ async function handleRequest(req, res) {
   const parsed = url.parse(req.url, true);
   const method = req.method;
   if (method === 'OPTIONS') {
-    res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' });
+    const origin = req.headers.origin || 'http://localhost:3001';
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Credentials': 'true'
+    });
     return res.end();
   }
 
@@ -80,8 +86,12 @@ async function handleRequest(req, res) {
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer((req, res) => {
-  // basic CORS for browsing
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS: echo origin and allow credentials for frontend requests
+  const origin = req.headers.origin || 'http://localhost:3001';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // allow common headers for requests from the frontend
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   handleRequest(req, res);
 });
 

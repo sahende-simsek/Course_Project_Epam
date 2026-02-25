@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from 'next/navigation';
 import AuthClient from "../lib/authClient";
 
 export default function RegisterForm() {
@@ -13,13 +14,20 @@ export default function RegisterForm() {
     setError(null);
     setLoading(true);
     try {
+      console.log('RegisterForm: submitting', { email });
       await AuthClient.register(email, password);
+      console.log('RegisterForm: register success, about to navigate to /login');
+      // after successful registration, navigate to login page
+      router.push('/login');
+      console.log('RegisterForm: router.push called to /login');
     } catch (err: any) {
       setError(err?.message ?? "Register failed");
     } finally {
       setLoading(false);
     }
   };
+
+  const router = useRouter();
 
   return (
     <form onSubmit={onSubmit} aria-label="register-form" className="card auth-card">
