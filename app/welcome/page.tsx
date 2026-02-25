@@ -27,8 +27,6 @@ export default function WelcomePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [processPainPoint, setProcessPainPoint] = useState("");
-  const [targetCustomer, setTargetCustomer] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -112,17 +110,6 @@ export default function WelcomePage() {
       return;
     }
 
-    // Smart form validation: require extra info for specific categories.
-    if (category === "Process Improvement" && !processPainPoint.trim()) {
-      setError("Please describe the current process pain point for process improvement ideas.");
-      return;
-    }
-
-    if (category === "New Product / Service" && !targetCustomer.trim()) {
-      setError("Please specify the target customer segment for new product or service ideas.");
-      return;
-    }
-
     // Validate attachments (if any) before sending to backend.
     const invalidFiles = files.filter((f) => !isAllowedFile(f));
     if (invalidFiles.length > 0) {
@@ -138,13 +125,7 @@ export default function WelcomePage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          title,
-          description,
-          category,
-          processPainPoint: processPainPoint || undefined,
-          targetCustomer: targetCustomer || undefined,
-        }),
+        body: JSON.stringify({ title, description, category }),
       });
 
       if (!res.ok) {
@@ -202,8 +183,6 @@ export default function WelcomePage() {
       setTitle("");
       setDescription("");
       setCategory("");
-      setProcessPainPoint("");
-      setTargetCustomer("");
       setFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -254,58 +233,15 @@ export default function WelcomePage() {
 
           <div className="idea-form-field">
             <label htmlFor="category">Category</label>
-            <select
+            <input
               id="category"
               name="category"
+              type="text"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
-            >
-              <option value="" disabled>
-                Select a category
-              </option>
-              <option value="Process Improvement">Process Improvement</option>
-              <option value="New Product / Service">New Product / Service</option>
-              <option value="Culture & Community">Culture &amp; Community</option>
-              <option value="Other">Other</option>
-            </select>
-            {category === "Process Improvement" && (
-              <p style={{ margin: 0, fontSize: "0.8rem", color: "#6b7280" }}>
-                Focus on how the current process works today and what slows teams down.
-              </p>
-            )}
-            {category === "New Product / Service" && (
-              <p style={{ margin: 0, fontSize: "0.8rem", color: "#6b7280" }}>
-                Describe who would use this new product or service first.
-              </p>
-            )}
+            />
           </div>
-
-          {category === "Process Improvement" && (
-            <div className="idea-form-field">
-              <label htmlFor="processPainPoint">Current process pain point</label>
-              <textarea
-                id="processPainPoint"
-                name="processPainPoint"
-                value={processPainPoint}
-                onChange={(e) => setProcessPainPoint(e.target.value)}
-                rows={3}
-              />
-            </div>
-          )}
-
-          {category === "New Product / Service" && (
-            <div className="idea-form-field">
-              <label htmlFor="targetCustomer">Target customer segment</label>
-              <input
-                id="targetCustomer"
-                name="targetCustomer"
-                type="text"
-                value={targetCustomer}
-                onChange={(e) => setTargetCustomer(e.target.value)}
-              />
-            </div>
-          )}
 
           <div className="idea-form-field">
             <label htmlFor="attachment">Attachment (single file)</label>
