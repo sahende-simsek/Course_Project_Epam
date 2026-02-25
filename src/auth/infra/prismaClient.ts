@@ -47,7 +47,16 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				const id = `u-${userCounter++}`;
 				const role = data.role ?? Role.SUBMITTER;
 				const now = new Date();
-				const rec: User = { id, email: data.email, passwordHash: data.passwordHash, role, createdAt: now, updatedAt: now, lastLoginAt: null };
+				const rec: User = {
+					id,
+					email: data.email,
+					passwordHash: data.passwordHash,
+					status: 'active',
+					role,
+					createdAt: now,
+					updatedAt: now,
+					lastLoginAt: null,
+				};
 				users[id] = rec;
 				users[data.email] = rec;
 				return rec;
@@ -77,7 +86,18 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 		refreshToken: {
 			create: async ({ data }: { data: Pick<RefreshToken, 'tokenId' | 'userId' | 'expiresAt'> }) => {
 				const id = `r-${refreshCounter++}`;
-				const rec: RefreshToken = { id, tokenId: data.tokenId ?? `t-${id}`, userId: data.userId, expiresAt: data.expiresAt, revoked: false, parentId: null, createdAt: new Date() };
+				const rec: RefreshToken = {
+					id,
+					tokenId: data.tokenId ?? `t-${id}`,
+					userId: data.userId,
+					parentTokenId: null,
+					issuedAt: new Date(),
+					lastUsedAt: null,
+					expiresAt: data.expiresAt,
+					revoked: false,
+					ip: null,
+					userAgent: null,
+				};
 				refreshTokens[rec.tokenId] = rec;
 				return rec;
 			},

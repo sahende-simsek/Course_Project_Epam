@@ -30,14 +30,13 @@
     ]
   },
   "include": [
-    "src",
-    "tests",
-    "app",
-    "components",
-    "lib",
-    "theme",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+  "src",
+  "app",
+  "components",
+  "lib",
+  "theme",
+  ".next/types/**/*.ts",
+  ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
