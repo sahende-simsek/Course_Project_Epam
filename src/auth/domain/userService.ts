@@ -3,6 +3,7 @@ import { hashPassword } from './hash';
 import prisma from '../infra/prismaClient';
 import config from '../../config';
 import { Role } from '@prisma/client';
+import type { HttpError } from './types';
 
 function deriveRoleForEmail(normalizedEmail: string): Role {
   const emailLower = normalizedEmail.toLowerCase();
@@ -31,9 +32,9 @@ export async function createUser(email: string, password: string) {
   // Prevent duplicate emails in both real DB and in-memory test client.
   const existing = await prisma.user.findUnique({ where: { email: normalized } });
   if (existing) {
-    const e = new Error('Conflict: email already exists');
-    (e as any).status = 409;
-    throw e;
+  const e = new Error('Conflict: email already exists') as HttpError;
+  e.status = 409;
+  throw e;
   }
 
   const passwordHash = await hashPassword(password);
@@ -54,15 +55,16 @@ export async function createUser(email: string, password: string) {
       },
     });
     return user;
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Prisma unique constraint error code P2002
-    if (err?.code === 'P2002') {
-      const e = new Error('Conflict: email already exists');
-      // attach status for adapters
-      (e as any).status = 409;
-      throw e;
-    }
-    throw err;
+  const error = err as { code?: string };
+  if (error.code === 'P2002') {
+    const e = new Error('Conflict: email already exists') as HttpError;
+    // attach status for adapters
+    e.status = 409;
+    throw e;
+  }
+  throw err;
   }
 }
 

@@ -1,13 +1,40 @@
-import { PrismaClient } from '@prisma/client';
+/* eslint-disable no-mixed-spaces-and-tabs */
+import { PrismaClient, Role, type User, type RefreshToken, type Idea, type Attachment, type Evaluation } from '@prisma/client';
 
 // During tests we may prefer a lightweight in-memory stub to avoid real DB dependency.
-let prisma: any;
+let prisma: PrismaClient | {
+	user: {
+	  create: ({ data }: { data: Pick<User, 'email' | 'passwordHash' | 'role'> }) => Promise<User>;
+	  findUnique: ({ where }: { where: { email?: string; id?: string } }) => Promise<User | null>;
+	  update: ({ where, data }: { where: { id: string }; data: Partial<User> }) => Promise<User | null>;
+	  delete: ({ where }: { where: { id: string } }) => Promise<User | null>;
+	};
+	refreshToken: {
+	  create: ({ data }: { data: Pick<RefreshToken, 'tokenId' | 'userId' | 'expiresAt'> }) => Promise<RefreshToken>;
+	  findUnique: ({ where }: { where: { tokenId: string } }) => Promise<RefreshToken | null>;
+	  update: ({ where, data }: { where: { id: string }; data: Partial<RefreshToken> }) => Promise<RefreshToken | undefined>;
+	  updateMany: ({ where, data }: { where: { tokenId?: string; userId?: string; id?: string }; data: Partial<RefreshToken> }) => Promise<{ count: number }>;
+	};
+	idea: {
+	  create: ({ data }: { data: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'authorId'> }) => Promise<Idea>;
+	  findMany: ({ where, orderBy }?: { where?: { authorId?: string }; orderBy?: { createdAt?: 'desc' } }) => Promise<Idea[]>;
+	  findUnique: ({ where }: { where: { id: string } }) => Promise<Idea | null>;
+	  update: ({ where, data }: { where: { id: string }; data: Partial<Idea> }) => Promise<Idea | null>;
+	};
+	attachment: {
+	  deleteMany: ({ where }: { where?: { ideaId?: string } }) => Promise<{ count: number }>;
+	  create: ({ data }: { data: Pick<Attachment, 'ideaId' | 'filename' | 'url' | 'mimetype' | 'size'> }) => Promise<Attachment>;
+	};
+	evaluation: {
+	  create: ({ data }: { data: Pick<Evaluation, 'ideaId' | 'evaluatorId' | 'comments' | 'decision'> }) => Promise<Evaluation>;
+	};
+};
 if (process.env.TEST_USE_INMEMORY === '1') {
-	const users: Record<string, any> = {};
-	const refreshTokens: Record<string, any> = {};
-	const ideas: Record<string, any> = {};
-	const attachments: Record<string, any> = {};
-	const evaluations: Record<string, any> = {};
+	const users: Record<string, User> = {};
+	const refreshTokens: Record<string, RefreshToken> = {};
+	const ideas: Record<string, Idea> = {};
+	const attachments: Record<string, Attachment> = {};
+	const evaluations: Record<string, Evaluation> = {};
 	let userCounter = 1;
 	let refreshCounter = 1;
 	let ideaCounter = 1;
@@ -16,21 +43,21 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 
 	prisma = {
 		user: {
-			create: async ({ data }: any) => {
+			create: async ({ data }: { data: Pick<User, 'email' | 'passwordHash' | 'role'> }) => {
 				const id = `u-${userCounter++}`;
-				const role = data.role ?? 'SUBMITTER';
+				const role = data.role ?? Role.SUBMITTER;
 				const now = new Date();
-				const rec = { id, email: data.email, passwordHash: data.passwordHash, role, createdAt: now, updatedAt: now };
+				const rec: User = { id, email: data.email, passwordHash: data.passwordHash, role, createdAt: now, updatedAt: now, lastLoginAt: null };
 				users[id] = rec;
 				users[data.email] = rec;
 				return rec;
 			},
-			findUnique: async ({ where }: any) => {
+			findUnique: async ({ where }: { where: { email?: string; id?: string } }) => {
 				if (where.email) return users[where.email] ?? null;
 				if (where.id) return users[where.id] ?? null;
 				return null;
 			},
-			update: async ({ where, data }: any) => {
+			update: async ({ where, data }: { where: { id: string }; data: Partial<User> }) => {
 				const u = users[where.id];
 				if (u) {
 					Object.assign(u, data);
@@ -38,7 +65,7 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				}
 				return u;
 			},
-			delete: async ({ where }: any) => {
+			delete: async ({ where }: { where: { id: string } }) => {
 				const u = users[where.id];
 				if (u) {
 					delete users[u.email];
@@ -48,23 +75,23 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			},
 		},
 		refreshToken: {
-			create: async ({ data }: any) => {
+			create: async ({ data }: { data: Pick<RefreshToken, 'tokenId' | 'userId' | 'expiresAt'> }) => {
 				const id = `r-${refreshCounter++}`;
-				const rec = { id, tokenId: data.tokenId ?? `t-${id}`, userId: data.userId, expiresAt: data.expiresAt, revoked: false };
+				const rec: RefreshToken = { id, tokenId: data.tokenId ?? `t-${id}`, userId: data.userId, expiresAt: data.expiresAt, revoked: false, parentId: null, createdAt: new Date() };
 				refreshTokens[rec.tokenId] = rec;
 				return rec;
 			},
-			findUnique: async ({ where }: any) => {
+			findUnique: async ({ where }: { where: { tokenId: string } }) => {
 				return refreshTokens[where.tokenId] ?? null;
 			},
-			update: async ({ where, data }: any) => {
-				const byId = Object.values(refreshTokens).find((r: any) => r.id === where.id);
+			update: async ({ where, data }: { where: { id: string }; data: Partial<RefreshToken> }) => {
+				const byId = Object.values(refreshTokens).find((r) => r.id === where.id);
 				if (byId) Object.assign(byId, data);
 				return byId;
 			},
-			updateMany: async ({ where, data }: any) => {
+			updateMany: async ({ where, data }: { where: { tokenId?: string; userId?: string; id?: string }; data: Partial<RefreshToken> }) => {
 				let count = 0;
-				Object.values(refreshTokens).forEach((r: any) => {
+				Object.values(refreshTokens).forEach((r) => {
 					if ((where.tokenId && r.tokenId === where.tokenId) || (where.userId && r.userId === where.userId) || (where.id && r.id === where.id)) {
 						Object.assign(r, data);
 						count++;
@@ -74,15 +101,15 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			},
 		},
 		idea: {
-			create: async ({ data }: any) => {
+			create: async ({ data }: { data: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'authorId'> }) => {
 				const id = `idea-${ideaCounter++}`;
 				const now = new Date();
-				const rec = {
+				const rec: Idea = {
 					id,
 					title: data.title,
 					description: data.description,
 					category: data.category,
-					status: data.status ?? 'SUBMITTED',
+					status: data.status,
 					authorId: data.authorId,
 					createdAt: now,
 					updatedAt: now,
@@ -90,21 +117,21 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				ideas[id] = rec;
 				return rec;
 			},
-			findMany: async ({ where, orderBy }: any = {}) => {
-				let list = Object.values(ideas);
+			findMany: async ({ where, orderBy }: { where?: { authorId?: string }; orderBy?: { createdAt?: 'desc' } } = {}) => {
+				let list = Object.values(ideas) as Idea[];
 				if (where && where.authorId) {
-					list = list.filter((i: any) => i.authorId === where.authorId);
+					list = list.filter((i) => i.authorId === where.authorId);
 				}
 				if (orderBy && orderBy.createdAt === 'desc') {
-					list = list.sort((a: any, b: any) => (b.createdAt as any) - (a.createdAt as any));
+					list = list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 				}
 				return list;
 			},
-			findUnique: async ({ where }: any) => {
+			findUnique: async ({ where }: { where: { id: string } }) => {
 				if (!where?.id) return null;
 				return ideas[where.id] ?? null;
 			},
-			update: async ({ where, data }: any) => {
+			update: async ({ where, data }: { where: { id: string }; data: Partial<Idea> }) => {
 				const idea = ideas[where.id];
 				if (!idea) return null;
 				Object.assign(idea, data);
@@ -113,7 +140,7 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			},
 		},
 		attachment: {
-			deleteMany: async ({ where }: any) => {
+			deleteMany: async ({ where }: { where?: { ideaId?: string } }) => {
 				let count = 0;
 				Object.keys(attachments).forEach((id) => {
 					const att = attachments[id];
@@ -124,10 +151,10 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				});
 				return { count };
 			},
-			create: async ({ data }: any) => {
+			create: async ({ data }: { data: Pick<Attachment, 'ideaId' | 'filename' | 'url' | 'mimetype' | 'size'> }) => {
 				const id = `att-${attachmentCounter++}`;
 				const now = new Date();
-				const rec = {
+				const rec: Attachment = {
 					id,
 					ideaId: data.ideaId,
 					filename: data.filename,
@@ -141,10 +168,10 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			},
 		},
 		evaluation: {
-			create: async ({ data }: any) => {
+			create: async ({ data }: { data: Pick<Evaluation, 'ideaId' | 'evaluatorId' | 'comments' | 'decision'> }) => {
 				const id = `eval-${evaluationCounter++}`;
 				const now = new Date();
-				const rec = {
+				const rec: Evaluation = {
 					id,
 					ideaId: data.ideaId,
 					evaluatorId: data.evaluatorId,
@@ -156,7 +183,7 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				return rec;
 			},
 		},
-	} as any;
+	};
 } else {
 	// Export a single Prisma client instance for the app to reuse.
 	prisma = new PrismaClient();

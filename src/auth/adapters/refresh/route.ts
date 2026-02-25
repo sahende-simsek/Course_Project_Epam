@@ -1,5 +1,5 @@
 import refreshService from '../../domain/refreshService';
-import { generateAccessToken } from '../../domain/tokenService';
+import type { HttpError } from '../../domain/types';
 
 export async function POST(req: Request) {
   try {
@@ -19,9 +19,10 @@ export async function POST(req: Request) {
     const cookie = `refresh=${result.refresh.tokenId}; HttpOnly; Secure; SameSite=Lax; Path=/; Expires=${expires}`;
 
     return new Response(JSON.stringify({ accessToken: result.access.token, expiresIn: result.access.expiresIn }), { status: 200, headers: { 'Content-Type': 'application/json', 'Set-Cookie': cookie } });
-  } catch (err: any) {
-    const status = err?.status || 400;
-    const payload = { error: { code: String(err?.code || 'error'), message: err?.message || 'Bad Request' } };
-    return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } });
+  } catch (err: unknown) {
+  const error = err as HttpError;
+  const status = error.status || 400;
+  const payload = { error: { code: String(error.code || 'error'), message: error.message || 'Bad Request' } };
+  return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } });
   }
 }

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import getConfig from '../../config';
 import prisma from '../infra/prismaClient';
+import type { AuthTokenPayload, HttpError } from '../domain/types';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 
@@ -16,8 +17,8 @@ function getUserIdFromAuth(req: Request): string | null {
   if (!auth || !auth.startsWith('Bearer ')) return null;
   const token = auth.slice('Bearer '.length);
   try {
-    const decoded: any = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
-    return decoded?.sub ?? null;
+	const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret') as AuthTokenPayload;
+	return decoded.sub ?? null;
   } catch {
     return null;
   }
@@ -81,9 +82,10 @@ export async function POST(req: Request) {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
-    const status = err?.status || 400;
-    const payload = { error: { code: String(err?.code || 'error'), message: err?.message || 'Bad Request' } };
-    return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } });
+  } catch (err: unknown) {
+  const error = err as HttpError;
+  const status = error.status || 400;
+  const payload = { error: { code: String(error.code || 'error'), message: error.message || 'Bad Request' } };
+  return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } });
   }
 }

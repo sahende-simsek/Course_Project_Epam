@@ -1,5 +1,7 @@
 import prisma from '../infra/prismaClient';
-import { IdeaStatus, Role } from '@prisma/client';
+import type { Role } from '@prisma/client';
+import { IdeaStatus } from '@prisma/client';
+import type { HttpError } from './types';
 
 export interface CreateIdeaInput {
   authorId: string;
@@ -11,14 +13,14 @@ export interface CreateIdeaInput {
 export async function createIdea(input: CreateIdeaInput) {
   const { authorId, title, description, category } = input;
   if (!authorId) {
-    const err: any = new Error('Unauthorized: missing authorId');
-    err.status = 401;
-    throw err;
+  const err = new Error('Unauthorized: missing authorId') as HttpError;
+  err.status = 401;
+  throw err;
   }
   if (!title || !description || !category) {
-    const err: any = new Error('Validation failed: title, description, category are required');
-    err.status = 400;
-    throw err;
+  const err = new Error('Validation failed: title, description, category are required') as HttpError;
+  err.status = 400;
+  throw err;
   }
 
   const idea = await prisma.idea.create({
@@ -36,9 +38,9 @@ export async function createIdea(input: CreateIdeaInput) {
 
 export async function listIdeasForUser(userId: string, role: Role) {
   if (!userId) {
-    const err: any = new Error('Unauthorized');
-    err.status = 401;
-    throw err;
+  const err = new Error('Unauthorized') as HttpError;
+  err.status = 401;
+  throw err;
   }
 
   if (role === 'EVALUATOR') {
@@ -58,16 +60,16 @@ export async function listIdeasForUser(userId: string, role: Role) {
 
 export async function getIdeaForUser(ideaId: string, userId: string, role: Role) {
   if (!ideaId) {
-    const err: any = new Error('Validation failed: missing ideaId');
-    err.status = 400;
-    throw err;
+  const err = new Error('Validation failed: missing ideaId') as HttpError;
+  err.status = 400;
+  throw err;
   }
 
   const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
   if (!idea) {
-    const err: any = new Error('Idea not found');
-    err.status = 404;
-    throw err;
+  const err = new Error('Idea not found') as HttpError;
+  err.status = 404;
+  throw err;
   }
 
   if (role === 'EVALUATOR') {
@@ -75,9 +77,9 @@ export async function getIdeaForUser(ideaId: string, userId: string, role: Role)
   }
 
   if (idea.authorId !== userId) {
-    const err: any = new Error('Forbidden');
-    err.status = 403;
-    throw err;
+  const err = new Error('Forbidden') as HttpError;
+  err.status = 403;
+  throw err;
   }
 
   return idea;

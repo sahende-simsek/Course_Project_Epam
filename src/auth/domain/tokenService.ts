@@ -1,13 +1,14 @@
 import * as jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import getConfig from '../../config';
+import type { AuthTokenPayload } from './types';
 
 const ACCESS_TTL_SECONDS = 3600; // 1 hour
 
 export function generateAccessToken(user: { id: string; email?: string; role?: string }) {
   const secret = getConfig.JWT_SECRET || 'dev-secret';
   const jti = randomUUID();
-  const payload: any = { sub: user.id, email: user.email };
+  const payload: AuthTokenPayload = { sub: user.id, email: user.email ?? '' };
   if (user.role) {
     payload.role = user.role;
   }
