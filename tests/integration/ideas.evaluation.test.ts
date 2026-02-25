@@ -23,31 +23,29 @@ describe('integration: ideas & evaluation (Phase 12, T055)', () => {
       console.warn('Skipping ideas/evaluation integration test: DATABASE_URL not set');
       return;
     }
-
-  try {
     // Create submitter and evaluator users.
     const submitter = await prisma.user.create({
-    data: {
-      email: `submitter+${Date.now()}@example.com`,
-      passwordHash: 'x',
-      role: Role.SUBMITTER,
-    },
+      data: {
+        email: `submitter+${Date.now()}@example.com`,
+        passwordHash: 'x',
+        role: Role.SUBMITTER,
+      },
     });
 
     const evaluator = await prisma.user.create({
-    data: {
-      email: `evaluator+${Date.now()}@example.com`,
-      passwordHash: 'x',
-      role: Role.EVALUATOR,
-    },
+      data: {
+        email: `evaluator+${Date.now()}@example.com`,
+        passwordHash: 'x',
+        role: Role.EVALUATOR,
+      },
     });
 
     // Submitter creates an idea.
     const idea = await createIdea({
-    authorId: submitter.id,
-    title: 'New idea',
-    description: 'An innovative concept',
-    category: 'General',
+      authorId: submitter.id,
+      title: 'New idea',
+      description: 'An innovative concept',
+      category: 'General',
     });
 
     expect(idea.status).toBe(IdeaStatus.SUBMITTED);
@@ -61,22 +59,15 @@ describe('integration: ideas & evaluation (Phase 12, T055)', () => {
 
     // Evaluator accepts the idea.
     const result = await evaluateIdea({
-    ideaId: idea.id,
-    evaluatorId: evaluator.id,
-    decision: IdeaStatus.ACCEPTED,
-    comments: 'Looks good',
+      ideaId: idea.id,
+      evaluatorId: evaluator.id,
+      decision: IdeaStatus.ACCEPTED,
+      comments: 'Looks good',
     });
 
     expect(result.evaluation.decision).toBe(IdeaStatus.ACCEPTED);
 
     const updated = await getIdeaForUser(idea.id, evaluator.id, Role.EVALUATOR);
     expect(updated.status).toBe(IdeaStatus.ACCEPTED);
-  } catch (e: any) {
-    if (String(e.message || '').includes('does not exist')) {
-    console.warn('Skipping ideas/evaluation integration test: database schema not initialized');
-    return;
-    }
-    throw e;
-  }
   });
 });
