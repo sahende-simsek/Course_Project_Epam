@@ -1,4 +1,5 @@
 import prisma from '../infra/prismaClient';
+import { IdeaStatus } from '@prisma/client';
 
 export interface EvaluateIdeaInput {
   ideaId: string;
@@ -33,6 +34,13 @@ export async function evaluateIdea(input: EvaluateIdeaInput) {
   if (!idea) {
     const err: any = new Error('Idea not found');
     err.status = 404;
+    throw err;
+  }
+
+  // Prevent re-evaluation once a final decision has been made.
+  if (idea.status === IdeaStatus.ACCEPTED || idea.status === IdeaStatus.REJECTED) {
+    const err: any = new Error('Idea has already been evaluated');
+    err.status = 409;
     throw err;
   }
 

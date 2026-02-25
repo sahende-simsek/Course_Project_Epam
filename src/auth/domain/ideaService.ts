@@ -43,6 +43,7 @@ export async function listIdeasForUser(userId: string, role: Role) {
 
   if (role === 'EVALUATOR') {
     return prisma.idea.findMany({
+      include: { attachments: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -50,6 +51,7 @@ export async function listIdeasForUser(userId: string, role: Role) {
   // Default: SUBMITTER only sees own ideas (FR-011)
   return prisma.idea.findMany({
     where: { authorId: userId },
+    include: { attachments: true },
     orderBy: { createdAt: 'desc' },
   });
 }

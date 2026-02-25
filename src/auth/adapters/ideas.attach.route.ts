@@ -2,6 +2,15 @@ import jwt from 'jsonwebtoken';
 import getConfig from '../../config';
 import prisma from '../infra/prismaClient';
 
+const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+function isAllowedFilename(name: string): boolean {
+  const idx = name.lastIndexOf('.');
+  if (idx === -1) return false;
+  const ext = name.slice(idx + 1).toLowerCase();
+  return ALLOWED_EXTENSIONS.includes(ext);
+}
+
 function getUserIdFromAuth(req: Request): string | null {
   const auth = req.headers.get('authorization');
   if (!auth || !auth.startsWith('Bearer ')) return null;
@@ -34,6 +43,21 @@ export async function POST(req: Request) {
       });
     }
 
+    if (!isAllowedFilename(filename)) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'unsupported_media_type',
+            message: 'Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed',
+          },
+        }),
+        {
+          status: 415,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
     const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
     if (!idea) {
       return new Response(JSON.stringify({ error: { code: 'not_found', message: 'Idea not found' } }), {
@@ -48,9 +72,6 @@ export async function POST(req: Request) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    // Enforce single attachment per idea by deleting existing attachments first (MVP simplicity).
-    await prisma.attachment.deleteMany({ where: { ideaId } });
 
     const attachment = await prisma.attachment.create({
       data: { ideaId, filename, url, mimetype, size },

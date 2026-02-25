@@ -20,7 +20,11 @@ export default function LoginForm() {
       if (typeof window !== 'undefined') {
         try {
           const access = (session as any)?.accessToken;
-          if (access && typeof access.token === 'string') {
+          // login adapter returns accessToken as a plain JWT string
+          if (typeof access === 'string') {
+            window.localStorage.setItem('accessToken', access);
+          } else if (access && typeof access.token === 'string') {
+            // fallback for older shape { token, expiresIn }
             window.localStorage.setItem('accessToken', access.token);
           }
           window.localStorage.setItem('userEmail', email);
@@ -31,7 +35,8 @@ export default function LoginForm() {
       // JWT payload icindeki role alanina gore sayfa sec
       let role: string | undefined;
       try {
-        const raw = (session as any)?.accessToken?.token;
+        const access = (session as any)?.accessToken;
+        const raw = typeof access === 'string' ? access : access?.token;
         if (typeof raw === 'string') {
           const parts = raw.split('.');
           if (parts.length === 3) {

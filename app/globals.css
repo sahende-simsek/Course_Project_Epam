@@ -12,7 +12,7 @@ html,body,#root{height:100%}
 body{
   margin:0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  background:linear-gradient(180deg,var(--bg),#ffffff);
+  background:#f3f4f6;
   color:#0f172a;
 }
 .site-container{
@@ -30,18 +30,35 @@ body{
 .site-header .inner{display:flex;align-items:center;justify-content:space-between;max-width:var(--max-width);margin:0 auto}
 .brand{font-weight:700;letter-spacing:0.4px}
 .nav a{color:rgba(255,255,255,0.95);text-decoration:none;margin-left:1rem}
+.nav button{margin-left:1rem;padding:0.45rem 0.9rem;border-radius:999px;border:1px solid rgba(255,255,255,0.85);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer}
+.nav button:hover{background:rgba(255,255,255,0.2)}
 
 /* Hero */
-.hero{display:flex;gap:2rem;align-items:center;padding:3rem 1rem;border-radius:var(--radius);background:linear-gradient(180deg,rgba(11,95,255,0.08),transparent)}
-.hero h1{margin:0 0 0.5rem 0;font-size:2rem}
-.hero p{margin:0;color:var(--muted)}
-.hero .cta{margin-top:1rem}
+.home-page{display:flex;flex-direction:column;gap:2rem;margin-top:1.5rem}
+.hero{display:flex;gap:2.5rem;align-items:flex-start;padding:2.5rem 2.5rem;border-radius:var(--radius)}
+.hero--primary{
+  background:#ffffff;
+  color:#0f172a;
+  border:1px solid #e5e7eb;
+}
+.hero h1{margin:0 0 0.75rem 0;font-size:2.1rem}
+.hero p{margin:0;color:#4b5563;line-height:1.5}
+.hero .cta{margin-top:1.2rem}
+.hero .btn.secondary{background:transparent;color:var(--brand);border-color:rgba(11,95,255,0.25)}
+.hero-content{flex:1}
+.hero-metrics{display:none}
+.metric{display:none}
+.metric-value{display:none}
+.metric-label{display:none}
 .btn{background:var(--brand);color:white;padding:0.6rem 1rem;border-radius:8px;border:none;cursor:pointer}
 .btn.secondary{background:transparent;color:var(--brand);border:1px solid rgba(11,95,255,0.12)}
 
 /* Cards */
 .card{background:var(--surface);padding:1.25rem;border-radius:12px;box-shadow:0 6px 20px rgba(11,40,80,0.06)}
 .grid{display:grid;grid-template-columns:1fr 360px;gap:1.5rem}
+.home-sections{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0.5rem}
+.home-section h3{margin-top:0;margin-bottom:0.35rem}
+.home-section .muted{font-size:0.9rem}
 
 /* Forms */
 .auth-card{display:flex;flex-direction:column;gap:0.75rem}
@@ -52,7 +69,26 @@ body{
 /* Footer */
 .site-footer{margin-top:3rem;padding:2rem 1rem;background:#fafafa;color:var(--muted);text-align:center}
 
+/* Login page */
+.login-page{display:flex;justify-content:center;margin-top:3rem;padding:0 1rem}
+.login-card{max-width:420px;width:100%;text-align:left}
+.login-title{margin:0 0 0.5rem 0;font-size:1.6rem}
+.login-subtitle{margin:0 0 1.25rem 0;color:var(--muted);font-size:0.95rem}
+
+/* Welcome page */
+.welcome-page{display:flex;flex-direction:column;gap:1.5rem;margin-top:1.5rem}
+.welcome-header h1{margin:0 0 0.25rem 0}
+.welcome-header p{margin:0;color:var(--muted)}
+.idea-form{display:flex;flex-direction:column;gap:0.9rem;margin-top:0.5rem}
+.idea-form-field{display:flex;flex-direction:column;gap:0.25rem}
+.idea-form-field label{font-size:0.9rem;color:var(--muted)}
+.idea-form-field input,.idea-form-field textarea{padding:0.6rem;border-radius:8px;border:1px solid #e6e9ef;width:100%}
+.idea-form-actions{margin-top:0.25rem;display:flex;align-items:center;gap:0.5rem}
+.idea-item{border-top:1px solid #e5e7eb;padding-top:0.75rem;margin-top:0.75rem}
+.idea-item h3{margin:0 0 0.25rem 0}
+.idea-item p{margin:0.15rem 0}
+
 @media(max-width:880px){
   .grid{grid-template-columns:1fr}
-  .hero{flex-direction:column}
+  .hero{flex-direction:column;padding:2.25rem 1.5rem}
 }

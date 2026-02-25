@@ -1,31 +1,47 @@
 export default function Home() {
   return (
-    <main>
-      <section className="hero card">
-        <div>
-          <h1>Fast, secure authentication</h1>
-          <p>Sign up, sign in, and explore the authentication flows — clean, tested, and ready for integration.</p>
+    <main className="home-page">
+      <section className="hero hero--primary card">
+        <div className="hero-content">
+          <h1>InnovatEPAM Portal</h1>
+          <p>
+            A simple internal innovation platform where EPAM teams can submit ideas,
+            collaborate with evaluators and track the full intrapreneurship journey.
+          </p>
           <div className="cta">
-            <a className="btn" href="/register">Get started</a>
-            <a className="btn secondary" href="/login" style={{marginLeft:12}}>Sign in</a>
+            <a className="btn" href="/register">Create innovator account</a>
+            <a className="btn secondary" href="/login" style={{ marginLeft: 12 }}>
+              Sign in to InnovatEPAM
+            </a>
           </div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          <img src="/logo192.png" alt="logo" style={{width:120,opacity:0.9}} />
         </div>
       </section>
 
-      <div className="grid" style={{marginTop:20}}>
-        <div className="card">
-          <h3>Why this demo</h3>
-          <p className="muted">Built to exercise API-backed auth flows with clear test coverage and a simple React frontend.</p>
-        </div>
-        <div className="card auth-card">
-          <h3>Quick actions</h3>
-          <a className="btn" href="/register">Register</a>
-          <a className="btn secondary" href="/login">Login</a>
-        </div>
-      </div>
+      <section className="grid home-sections">
+        <article className="card home-section">
+          <h3>For innovators</h3>
+          <p className="muted">
+            Capture ideas in minutes, attach supporting documents and track status
+            as your initiative moves from submitted to under review, accepted or
+            rejected.
+          </p>
+        </article>
+        <article className="card home-section">
+          <h3>For evaluators</h3>
+          <p className="muted">
+            Review a curated queue of proposals, leave structured feedback and
+            take clear Accept / Reject decisions with full status history.
+          </p>
+        </article>
+        <article className="card home-section">
+          <h3>Built for EPAM</h3>
+          <p className="muted">
+            Opinionated, secure flows that fit internal innovation programs,
+            while remaining simple enough to extend and integrate with existing
+            tools.
+          </p>
+        </article>
+      </section>
     </main>
-  )
+  );
 }

@@ -4,8 +4,10 @@ const url = require('url');
 // Simple runtime guard for duplicate emails when using the in-memory adapter.
 const _registeredEmails = new Set();
 
-// Use in-memory Prisma when DATABASE_URL is not set (same convention as tests)
-if (!process.env.DATABASE_URL) {
+// For local dev, prefer in-memory Prisma to avoid a real DB dependency.
+// If you really want to use the DATABASE_URL Postgres instance, set USE_REAL_DB=1.
+if (!process.env.USE_REAL_DB) {
+  delete process.env.DATABASE_URL;
   process.env.TEST_USE_INMEMORY = '1';
 }
 
@@ -107,8 +109,14 @@ async function handleRequest(req, res) {
       }
 
       const { title, description, category } = data;
-      const idea = await createIdea({ authorId: userId, title, description, category });
-      return jsonResponse(res, 201, idea);
+      try {
+        const idea = await createIdea({ authorId: userId, title, description, category });
+        return jsonResponse(res, 201, idea);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to create idea';
+        return jsonResponse(res, status, { error: message });
+      }
     }
 
     if (method === 'GET' && parsed.pathname === '/api/ideas') {
@@ -131,8 +139,14 @@ async function handleRequest(req, res) {
       const Role = require('@prisma/client').Role;
       const effectiveRole = role || Role.SUBMITTER;
 
-      const ideas = await listIdeasForUser(userId, effectiveRole);
-      return jsonResponse(res, 200, ideas);
+      try {
+        const ideas = await listIdeasForUser(userId, effectiveRole);
+        return jsonResponse(res, 200, ideas);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to load ideas';
+        return jsonResponse(res, status, { error: message });
+      }
     }
 
     if (method === 'GET' && parsed.pathname && parsed.pathname.startsWith('/api/ideas/')) {
@@ -155,8 +169,14 @@ async function handleRequest(req, res) {
       const effectiveRole = role || Role.SUBMITTER;
       const parts = parsed.pathname.split('/');
       const ideaId = parts[parts.length - 1];
-      const idea = await getIdeaForUser(ideaId, userId, effectiveRole);
-      return jsonResponse(res, 200, idea);
+      try {
+        const idea = await getIdeaForUser(ideaId, userId, effectiveRole);
+        return jsonResponse(res, 200, idea);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to load idea';
+        return jsonResponse(res, status, { error: message });
+      }
     }
 
     if (method === 'POST' && parsed.pathname === '/api/ideas/attach') {
@@ -175,13 +195,26 @@ async function handleRequest(req, res) {
 
       const { ideaId, filename, url: fileUrl, mimetype, size } = data;
       const prisma = require('../dist/auth/infra/prismaClient').default;
-      const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
-      if (!idea) return jsonResponse(res, 404, { error: 'Idea not found' });
-      if (idea.authorId !== userId) return jsonResponse(res, 403, { error: 'Only the submitter can attach files' });
+      const allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+      const idx = filename && filename.lastIndexOf('.');
+      const ext = idx !== -1 && typeof filename === 'string' ? filename.slice(idx + 1).toLowerCase() : '';
+      if (!ext || !allowedExt.includes(ext)) {
+        return jsonResponse(res, 415, {
+          error: 'Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed',
+        });
+      }
+      try {
+        const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+        if (!idea) return jsonResponse(res, 404, { error: 'Idea not found' });
+        if (idea.authorId !== userId) return jsonResponse(res, 403, { error: 'Only the submitter can attach files' });
 
-      await prisma.attachment.deleteMany({ where: { ideaId } });
-      const attachment = await prisma.attachment.create({ data: { ideaId, filename, url: fileUrl, mimetype, size } });
-      return jsonResponse(res, 201, attachment);
+        const attachment = await prisma.attachment.create({ data: { ideaId, filename, url: fileUrl, mimetype, size } });
+        return jsonResponse(res, 201, attachment);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to attach file';
+        return jsonResponse(res, status, { error: message });
+      }
     }
 
     if (method === 'POST' && parsed.pathname === '/api/evaluations') {
@@ -199,8 +232,14 @@ async function handleRequest(req, res) {
       }
 
       const { ideaId, decision, comments } = data;
-      const result = await evaluateIdea({ ideaId, evaluatorId, decision, comments });
-      return jsonResponse(res, 201, result);
+      try {
+        const result = await evaluateIdea({ ideaId, evaluatorId, decision, comments });
+        return jsonResponse(res, 201, result);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to evaluate idea';
+        return jsonResponse(res, status, { error: message });
+      }
     }
 
     // Health

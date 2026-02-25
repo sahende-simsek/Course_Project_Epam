@@ -3,8 +3,8 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 
 export const metadata = {
-  title: 'Auth Demo',
-  description: 'Authentication demo with React + Next.js'
+  title: 'InnovatEPAM Portal',
+  description: 'Internal innovation & intrapreneurship portal at EPAM'
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
