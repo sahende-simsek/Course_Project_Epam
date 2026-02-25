@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Idea {
@@ -17,16 +17,23 @@ interface Idea {
     mimetype: string;
     size: number;
   }[];
+  evaluations?: {
+    id: string;
+    comments: string;
+    decision: string;
+    createdAt?: string;
+  }[];
 }
 
 export default function WelcomePage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [otherCategory, setOtherCategory] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -61,6 +68,31 @@ export default function WelcomePage() {
       reader.readAsDataURL(file);
     });
 
+  const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files ? Array.from(e.target.files) : [];
+
+    if (selected.length === 0) {
+      setFiles([]);
+      return;
+    }
+
+    const allowed = selected.filter((file) => isAllowedFile(file));
+
+    if (allowed.length !== selected.length) {
+      setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
+    } else {
+      setError(null);
+    }
+
+    setFiles(allowed);
+
+    if (fileInputRef.current) {
+      const dt = new DataTransfer();
+      allowed.forEach((file) => dt.items.add(file));
+      fileInputRef.current.files = dt.files;
+    }
+  };
+
   const renderStatus = (status?: string) => {
     switch (status) {
       case "ACCEPTED":
@@ -77,14 +109,45 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? window.localStorage.getItem("accessToken") : null;
-    const storedEmail = typeof window !== "undefined" ? window.localStorage.getItem("userEmail") : null;
 
     if (!token) {
       router.replace("/login");
       return;
     }
 
-    setEmail(storedEmail);
+    // Always derive the name from the current token (DB-backed),
+    // falling back to email if username is not present.
+    let nameToUse: string | null = null;
+    let emailFromToken: string | null = null;
+    try {
+      const parts = token.split(".");
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+        const payloadUsername = payload?.username as string | undefined;
+        const payloadEmail = payload?.email as string | undefined;
+        nameToUse = payloadUsername || payloadEmail || null;
+        emailFromToken = payloadEmail || null;
+
+        if (typeof window !== "undefined") {
+          try {
+            if (emailFromToken) {
+              window.localStorage.setItem("userEmail", emailFromToken);
+            }
+            if (payloadUsername) {
+              window.localStorage.setItem("userName", payloadUsername);
+            } else {
+              window.localStorage.removeItem("userName");
+            }
+          } catch {
+            // ignore storage errors
+          }
+        }
+      }
+    } catch {
+      // ignore decode errors; nameToUse stays null
+    }
+
+    setDisplayName(nameToUse);
     setAccessToken(token);
     void loadIdeas(token);
   }, [router]);
@@ -121,7 +184,9 @@ export default function WelcomePage() {
     setError(null);
     setSuccess(null);
 
-    if (!title || !description || !category) {
+    const finalCategory = category === "__OTHER__" ? otherCategory.trim() : category;
+
+    if (!title || !description || !finalCategory) {
       setError("Title, description and category are required.");
       return;
     }
@@ -141,7 +206,7 @@ export default function WelcomePage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ title, description, category }),
+        body: JSON.stringify({ title, description, category: finalCategory }),
       });
 
       if (!res.ok) {
@@ -184,6 +249,7 @@ export default function WelcomePage() {
       setTitle("");
       setDescription("");
       setCategory("");
+      setOtherCategory("");
       setFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -201,7 +267,7 @@ export default function WelcomePage() {
   return (
     <main className="welcome-page">
       <section className="welcome-header">
-        <h1>Welcome{email ? `, ${email}` : ""}</h1>
+        <h1>Welcome{displayName ? `, ${displayName}` : ""}</h1>
         <p>From here you can submit a new idea and see your own ideas.</p>
       </section>
 
@@ -234,14 +300,33 @@ export default function WelcomePage() {
 
           <div className="idea-form-field">
             <label htmlFor="category">Category</label>
-            <input
+            <select
               id="category"
               name="category"
-              type="text"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
-            />
+            >
+              <option value="">Select a category</option>
+              <option value="Process improvement">Process improvement</option>
+              <option value="New product">New product</option>
+              <option value="Customer experience">Customer experience</option>
+              <option value="Internal tools">Internal tools</option>
+              <option value="Cost optimization">Cost optimization</option>
+              <option value="__OTHER__">Other</option>
+            </select>
+            {category === "__OTHER__" && (
+              <input
+                id="otherCategory"
+                name="otherCategory"
+                type="text"
+                placeholder="Enter your category"
+                value={otherCategory}
+                onChange={(e) => setOtherCategory(e.target.value)}
+                required
+              />
+            )}
+            <small>You can choose a category from the list or select Other and type your own.</small>
           </div>
 
           <div className="idea-form-field">
@@ -262,7 +347,7 @@ export default function WelcomePage() {
               type="file"
               multiple
               ref={fileInputRef}
-              onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])}
+              onChange={handleFilesChange}
               style={{ display: "none" }}
             />
             <small>
@@ -325,34 +410,53 @@ export default function WelcomePage() {
         ) : ideas.length === 0 ? (
           <p>You do not have any ideas yet.</p>
         ) : (
-          <ul>
-            {ideas.map((idea) => (
-              <li key={idea.id} className="idea-item">
-                <h3>{idea.title}</h3>
-                <p>{idea.description}</p>
-                <p>
-                  <strong>Category:</strong> {idea.category}
-                </p>
-                {idea.status && (
-                  <p>
-                    <strong>Status:</strong> {renderStatus(idea.status)}
-                  </p>
-                )}
-                {idea.attachments && idea.attachments.length > 0 && (
-                  <div style={{ marginTop: "0.25rem" }}>
-                    <strong>Attachments:</strong>{" "}
-                    {idea.attachments.map((att) => (
-                      <span key={att.id}>
-                        <a href={att.url} target="_blank" rel="noopener noreferrer">
-                          {att.filename}
-                        </a>
-                      </span>
-                    ))}
+          <div className="idea-table">
+            <div className="idea-table-header">
+              <span>Title & description</span>
+              <span>Category</span>
+              <span>Status</span>
+              <span>Admin comment</span>
+              <span>Attachments</span>
+            </div>
+            <ul className="idea-list">
+              {ideas.map((idea) => (
+                <li key={idea.id} className="idea-item">
+                  <div>
+                    <h3>{idea.title}</h3>
+                    <p>{idea.description}</p>
                   </div>
-                )}
-              </li>
-            ))}
-          </ul>
+                  <div>
+                    <p>{idea.category}</p>
+                  </div>
+                  <div>
+                    {idea.status && <span>{renderStatus(idea.status)}</span>}
+                  </div>
+                  <div>
+                    {idea.evaluations && idea.evaluations.length > 0 ? (
+                      <p style={{ margin: 0, fontSize: "0.85rem", color: "#6b7280" }}>
+                        Admin comment: {idea.evaluations[idea.evaluations.length - 1].comments}
+                      </p>
+                    ) : (
+                      <span>-</span>
+                    )}
+                  </div>
+                  <div>
+                    {idea.attachments && idea.attachments.length > 0 ? (
+                      idea.attachments.map((att) => (
+                        <div key={att.id}>
+                          <a href={att.url} target="_blank" rel="noopener noreferrer">
+                            {att.filename}
+                          </a>
+                        </div>
+                      ))
+                    ) : (
+                      <span>-</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </main>

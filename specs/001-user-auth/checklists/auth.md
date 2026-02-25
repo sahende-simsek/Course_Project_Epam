@@ -47,6 +47,47 @@ Audience: Security team
 - [x] CHK020 - Are there conflicting statements across sections (e.g., optional refresh token vs enforced cookie issuance)? If present, does the spec resolve the conflict? [Conflict, Spec §FR-004, Spec §API Specification]
 
 
-Notes:
-- Traceability: Most items reference FR/SC/sections in `spec.md`. Items marked `[Gap]` indicate missing or underspecified requirements that should be added to the spec.
-- This run created 20 checklist items focused on API + Security + UX + Accessibility concerns at a PR-reviewer depth for the Security team.
+
+
+
+### Requirement Completeness
+- [ ] CHK021 - Are role assignment and persistence requirements explicitly documented (who can assign roles, UI/API for assignment)? [Completeness, Spec §User Story 4]
+- [ ] CHK022 - Is the single-vs-multiple attachment policy decided and documented (accept/reject/replace behavior)? [Gap, Spec §User Story 6]
+- [ ] CHK023 - Are evaluation finalisation rules and allowed state transitions (including `UNDER_REVIEW`) specified? [Completeness, Spec §User Story 7]
+
+### Requirement Clarity
+- [ ] CHK024 - Is the `EVALUATOR` role scope clearly defined (which endpoints/actions require it)? [Clarity, Spec §User Story 4]
+- [ ] CHK025 - Is ownership verification for `POST /api/ideas/attach` described precisely (DB constraint, transaction boundary, error code)? [Clarity, Spec §FR-014]
+- [ ] CHK026 - Are the allowed `decision` values, comment length, and exact response codes for `POST /api/evaluations` specified? [Clarity, Spec §User Story 7]
+
+### Requirement Consistency
+- [ ] CHK027 - Are role checks consistent between `GET /api/ideas`, `POST /api/ideas/attach`, and `POST /api/evaluations` (same error codes for missing/insufficient role)? [Consistency, Spec §FR-011/FR-015]
+- [x] CHK028 - Do tasks T046–T055 align with the acceptance scenarios in the spec (no task/spec drift)? [Consistency, specs/001-user-auth/tasks.md]
+
+### Acceptance Criteria Quality (Measurability)
+- [x] CHK029 - Are success and failure response shapes for `POST /api/ideas`, `POST /api/ideas/attach`, and `POST /api/evaluations` explicitly defined (example bodies + error codes)? [Measurability, Spec §API Specification]
+- [x] CHK030 - Is the attachment rejection behavior for disallowed mime/oversize documented with exact status codes (`415`/`413`) and thresholds (MAX_ATTACHMENT_BYTES)? [Acceptance Criteria, Spec §Input Validation]
+
+### Scenario Coverage
+- [x] CHK031 - Are unauthenticated, unauthorized, and forbidden scenarios covered for each endpoint related to cases 4–7? [Coverage, Spec §§User Story 4-7]
+- [x] CHK032 - Are concurrency scenarios (attachment race, concurrent evaluations) described with expected deterministic outcomes and error codes (`409 Conflict`)? [Coverage, Edge Case]
+
+### Edge Case Coverage
+- [x] CHK033 - Is behavior when attempting to evaluate an already-finalised idea specified (idempotent/409 path)? [Edge Case, Spec §User Story 7]
+- [x] CHK034 - Is the attachment streaming/partial-failure behavior specified (what happens if file upload fails mid-stream)? [Edge Case, Spec §User Story 6]
+
+### Non-Functional Requirements
+- [x] CHK035 - Are attachment size limits, mimetype whitelist, and storage provider constraints documented and measurable (MAX_ATTACHMENT_BYTES, allowed mimetypes)? [NFR, Spec §Input Validation]
+- [ ] CHK036 - Are observability requirements for evaluation and attachment actions defined (structured logs, audit events, required fields)? [NFR, Spec §FR-007]
+
+### Dependencies & Assumptions
+- [x] CHK037 - Is the requirement that `role` is included in issued access tokens and how role changes are propagated (token revocation or short-lived tokens) documented? [Assumption, Spec §FR-012]
+- [x] CHK038 - Is storage/signing URL policy for attachments specified (signed URL TTL, HTTPS requirement)? [Dependency, Spec §Input Validation]
+
+### Ambiguities & Conflicts
+- [ ] CHK039 - Is the single-attachment vs multiple-attachment ambiguity resolved and the chosen policy traced to a spec line or task? [Ambiguity, Spec Gap]
+- [ ] CHK040 - Is the `UNDER_REVIEW` workflow requirement resolved (must it exist or is it out-of-scope)? [Ambiguity, Spec Gap]
+
+---
+
+

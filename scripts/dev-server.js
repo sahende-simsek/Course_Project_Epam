@@ -51,15 +51,15 @@ async function handleRequest(req, res) {
 
   try {
     if (method === 'POST' && parsed.pathname === '/api/auth/register') {
-      const { email, password } = data;
+      const { email, password, username } = data;
       if (!email || !password) return jsonResponse(res, 400, { error: 'email and password required' });
       // runtime duplicate guard (helps in-memory adapter)
       const norm = (email || '').toLowerCase().trim();
       if (_registeredEmails.has(norm)) return jsonResponse(res, 409, { error: 'email already registered' });
       try {
-        const user = await createUser(email, password);
+        const user = await createUser(email, password, username);
         _registeredEmails.add(norm);
-        return jsonResponse(res, 201, { id: user.id, email: user.email, createdAt: user.createdAt });
+        return jsonResponse(res, 201, { id: user.id, email: user.email, username: user.username, createdAt: user.createdAt });
       } catch (err) {
         if (err && err.status === 409) return jsonResponse(res, 409, { error: 'email already registered' });
         throw err;

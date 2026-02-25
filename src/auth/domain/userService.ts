@@ -22,7 +22,7 @@ function deriveRoleForEmail(normalizedEmail: string): Role {
   return Role.SUBMITTER;
 }
 
-export async function createUser(email: string, password: string) {
+export async function createUser(email: string, password: string, username?: string) {
   const normalized = validateEmail(email);
   if (!validatePassword(password)) {
     throw new Error('Password validation failed');
@@ -43,12 +43,14 @@ export async function createUser(email: string, password: string) {
     const user = await prisma.user.create({
       data: {
         email: normalized,
+        username: username || null,
         passwordHash,
         role,
       },
       select: {
         id: true,
         email: true,
+        username: true,
         role: true,
         createdAt: true,
       },

@@ -31,7 +31,7 @@ const AuthClient = {
         }
         return res.json();
     },
-    async register (email, password) {
+    async register (email, password, username) {
         const res = await fetch('http://localhost:3000/api/auth/register', {
             method: 'POST',
             headers: {
@@ -39,7 +39,8 @@ const AuthClient = {
             },
             body: JSON.stringify({
                 email,
-                password
+                password,
+                username
             })
         });
         if (!res.ok) {
@@ -84,23 +85,26 @@ function LoginForm() {
         setLoading(true);
         try {
             const session = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$authClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].login(email, password);
-            // basit client-side oturum saklama: token ve email'i localStorage'a yaz
-            if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
-            ;
-            // JWT payload icindeki role alanina gore sayfa sec
+            // basit client-side oturum saklama: token ve kullanıcı bilgilerini localStorage'a yaz
             let role;
             try {
                 const access = session?.accessToken;
                 const raw = typeof access === 'string' ? access : access?.token;
+                if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+                ;
                 if (typeof raw === 'string') {
                     const parts = raw.split('.');
                     if (parts.length === 3) {
                         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
                         role = payload?.role;
+                        if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+                        ;
                     }
                 }
             } catch  {
-            // decode hatasi olursa role bos kalir
+                // decode hatasi olursa role bos kalir
+                if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+                ;
             }
             if (role === 'EVALUATOR') {
                 router.push('/welcome-admin');
@@ -126,7 +130,7 @@ function LoginForm() {
                         children: "Email"
                     }, void 0, false, {
                         fileName: "[project]/components/LoginForm.tsx",
-                        lineNumber: 68,
+                        lineNumber: 80,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -138,13 +142,13 @@ function LoginForm() {
                         required: true
                     }, void 0, false, {
                         fileName: "[project]/components/LoginForm.tsx",
-                        lineNumber: 69,
+                        lineNumber: 81,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/LoginForm.tsx",
-                lineNumber: 67,
+                lineNumber: 79,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -154,7 +158,7 @@ function LoginForm() {
                         children: "Password"
                     }, void 0, false, {
                         fileName: "[project]/components/LoginForm.tsx",
-                        lineNumber: 79,
+                        lineNumber: 91,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -166,13 +170,13 @@ function LoginForm() {
                         required: true
                     }, void 0, false, {
                         fileName: "[project]/components/LoginForm.tsx",
-                        lineNumber: 80,
+                        lineNumber: 92,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/LoginForm.tsx",
-                lineNumber: 78,
+                lineNumber: 90,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -185,30 +189,48 @@ function LoginForm() {
                     children: loading ? "Signing in..." : "Sign in"
                 }, void 0, false, {
                     fileName: "[project]/components/LoginForm.tsx",
-                    lineNumber: 90,
-                    columnNumber: 7
+                    lineNumber: 102,
+                    columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/LoginForm.tsx",
-                lineNumber: 89,
-                columnNumber: 5
+                lineNumber: 101,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    marginTop: "0.5rem"
+                },
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                    href: "/forgot-password",
+                    children: "Forgot your password?"
+                }, void 0, false, {
+                    fileName: "[project]/components/LoginForm.tsx",
+                    lineNumber: 107,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/LoginForm.tsx",
+                lineNumber: 106,
+                columnNumber: 7
             }, this),
             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 role: "alert",
                 "aria-live": "assertive",
                 style: {
-                    color: 'red'
+                    color: 'red',
+                    marginTop: '0.5rem'
                 },
                 children: error
             }, void 0, false, {
                 fileName: "[project]/components/LoginForm.tsx",
-                lineNumber: 95,
-                columnNumber: 7
+                lineNumber: 110,
+                columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/LoginForm.tsx",
-        lineNumber: 66,
+        lineNumber: 78,
         columnNumber: 5
     }, this);
 }

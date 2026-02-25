@@ -20,7 +20,7 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				const id = `u-${userCounter++}`;
 				const role = data.role ?? 'SUBMITTER';
 				const now = new Date();
-				const rec = { id, email: data.email, passwordHash: data.passwordHash, role, createdAt: now, updatedAt: now };
+				const rec = { id, email: data.email, username: data.username ?? null, passwordHash: data.passwordHash, role, createdAt: now, updatedAt: now };
 				users[id] = rec;
 				users[data.email] = rec;
 				return rec;
@@ -98,10 +98,19 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				if (orderBy && orderBy.createdAt === 'desc') {
 					list = list.sort((a: any, b: any) => (b.createdAt as any) - (a.createdAt as any));
 				}
-				if (include && include.attachments) {
+				if (include && (include.attachments || include.evaluations)) {
 					list = list.map((idea: any) => ({
 						...idea,
-						attachments: Object.values(attachments).filter((att: any) => att.ideaId === idea.id),
+						...(include.attachments
+							? {
+								attachments: Object.values(attachments).filter((att: any) => att.ideaId === idea.id),
+							}
+							: {}),
+						...(include.evaluations
+							? {
+								evaluations: Object.values(evaluations).filter((ev: any) => ev.ideaId === idea.id),
+							}
+							: {}),
 					}));
 				}
 				return list;
@@ -110,10 +119,19 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				if (!where?.id) return null;
 				const idea = ideas[where.id] ?? null;
 				if (!idea) return null;
-				if (include && include.attachments) {
+				if (include && (include.attachments || include.evaluations)) {
 					return {
 						...idea,
-						attachments: Object.values(attachments).filter((att: any) => att.ideaId === idea.id),
+						...(include.attachments
+							? {
+								attachments: Object.values(attachments).filter((att: any) => att.ideaId === idea.id),
+							}
+							: {}),
+						...(include.evaluations
+							? {
+								evaluations: Object.values(evaluations).filter((ev: any) => ev.ideaId === idea.id),
+							}
+							: {}),
 					};
 				}
 				return idea;

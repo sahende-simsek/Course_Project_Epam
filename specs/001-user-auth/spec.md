@@ -66,12 +66,75 @@ As a logged-in user, I want to log out so that I can secure my account.
 
 ---
 
+
+### User Story 4 - Role Assignment / Role-based Access (Priority: P3)
+
+As an admin or provisioning system, I want to assign roles to users so that the API enforces correct visibility and permissions.
+
+**Why this priority**: Role-based access is required to separate submitter and evaluator responsibilities.
+
+**Independent Test**: Assign `role` on a `User` record and verify `GET /api/ideas` returns the correct scope for that role.
+
+**Acceptance Scenarios**:
+
+1. **Given** a user with role `EVALUATOR`, **When** the user requests `GET /api/ideas`, **Then** respond `200 OK` and return all ideas.
+2. **Given** a user with role `SUBMITTER`, **When** the user requests `GET /api/ideas`, **Then** respond `200 OK` and return only ideas where `authorId` equals the caller.
+3. **Given** an unauthenticated request, **When** requesting `GET /api/ideas`, **Then** respond `401 Unauthorized`.
+
+### User Story 5 - Submit Idea (Priority: P1)
+
+As an authenticated submitter, I want to submit an idea with a title, description, and category so that my idea is tracked for evaluation.
+
+**Why this priority**: Idea submission is core to the portal's purpose.
+
+**Independent Test**: POST valid payload to `POST /api/ideas` and verify `201 Created` and persisted `Idea` linked to caller.
+
+**Acceptance Scenarios**:
+
+1. **Given** an authenticated submitter with valid `{ title, description, category }`, **When** POSTing to `POST /api/ideas`, **Then** respond `201 Created` with the created `Idea` (status `SUBMITTED`) and persist the record linked to the caller.
+2. **Given** missing required fields, **When** POSTing, **Then** respond `400 Bad Request` with `fields` describing validation errors.
+3. **Given** an unauthenticated request, **When** POSTing, **Then** respond `401 Unauthorized`.
+
+### User Story 6 - Attach File (Priority: P2)
+
+As the idea author, I want to attach a file to my idea so evaluators can review supporting material.
+
+**Why this priority**: Attachments provide context for evaluators and are important for decision quality.
+
+**Independent Test**: Upload file to storage or prepare metadata and POST to `POST /api/ideas/attach`; verify `201 Created` and Attachment associated to the idea.
+
+**Acceptance Scenarios**:
+
+1. **Given** the caller is the idea author and submits valid attachment metadata to `POST /api/ideas/attach`, **When** the file extension is allowed, **Then** respond `201 Created` with the created `Attachment` and associate it to the idea.
+2. **Given** a disallowed file type or invalid payload, **When** POSTing, **Then** respond `415 Unsupported Media Type` or `400 Bad Request` accordingly.
+3. **Given** the idea already has an attachment and the specification requires a single attachment, **When** attaching another file, **Then** the server MUST either reject with `409 Conflict` or replace the existing attachment depending on the chosen policy (documented behavior); if multiple attachments are allowed, accept and return `201 Created`.
+
+### User Story 7 - Evaluate Idea (Priority: P2)
+
+As an authenticated evaluator or admin, I want to evaluate an idea with a decision and comments so that the idea's status is resolved.
+
+**Why this priority**: The evaluation finalises an idea and completes the submission lifecycle.
+
+**Independent Test**: POST `{ ideaId, decision, comments }` to `POST /api/evaluations` as an evaluator and verify `201 Created`, persisted `Evaluation`, and updated `Idea.status`.
+
+**Acceptance Scenarios**:
+
+1. **Given** an authenticated evaluator posts `{ ideaId, decision: ACCEPTED|REJECTED, comments }` to `POST /api/evaluations` and the idea is not already final, **When** processing, **Then** create an `Evaluation`, update `Idea.status` to the decision, and respond `201 Created` with evaluation details.
+2. **Given** the idea is already `ACCEPTED` or `REJECTED`, **When** attempting to evaluate, **Then** respond `409 Conflict` and do not create a new `Evaluation`.
+3. **Given** a caller without evaluator role, **When** POSTing to `POST /api/evaluations`, **Then** respond `403 Forbidden`.
+
 ### Edge Cases
 
 - Attempt to register concurrently with same email (race): ensure unique constraint and return `409` to duplicates.
 - Login attempts with repeated invalid passwords: ensure lockout or throttling policy (document limits in plan).
 - Token revocation between access and logout: ensure logout invalidates server-side refresh or revocation list where applicable.
 - Partial failures during registration (DB write succeeds after hash fails): ensure idempotent or compensating cleanup in migrations.
+ - Role drift or stale tokens: ensure role changes on `User` (e.g., promoting to `EVALUATOR`) are respected for newly issued tokens and consider short-lived access tokens or token revocation for role changes.
+ - Idea ownership race: concurrent attempts to attach/delete an attachment by different sessions should be handled with DB constraints and clear `409 Conflict` responses when ownership/uniqueness is violated.
+ - Attachment size and type limits: uploaded files exceeding size limits or disallowed MIME types must be rejected with `415` or `413` as appropriate; ensure streaming uploads do not result in partial DB records.
+ - Single-vs-multiple attachment policy conflict: if single-attachment is enforced, concurrent attach attempts must result in deterministic acceptance/rejection (use DB unique constraint or transaction to enforce).
+ - Evaluation concurrency: prevent two evaluators from finalising the same idea simultaneously; implement optimistic concurrency checks or transactions that return `409 Conflict` on concurrent finalisation.
+ - Missing role checks: endpoints must return `403 Forbidden` where caller lacks required role (e.g., non-evaluators posting to `/api/evaluations`).
 
 ## Requirements *(mandatory)*
 
@@ -90,12 +153,25 @@ As a logged-in user, I want to log out so that I can secure my account.
 
 - **FR-011**: For idea listing and viewing in the MVP scope, the system MUST enforce that Admin/Evaluator roles can list and view all ideas, while Submitter users can only list and view ideas they have created.
 
+ - **FR-012**: The system MUST allow assignment and persistence of a `role` on the `User` record (e.g., `SUBMITTER`, `EVALUATOR`, `ADMIN`) and include the role in issued access tokens so role checks can be enforced by API adapters.
+ - **FR-013**: The system MUST allow an authenticated submitter to create an `Idea` via `POST /api/ideas` with required fields `{ title, description, category }`. The server MUST validate inputs, persist the `Idea` with `status=SUBMITTED`, and set `authorId` to the caller. Successful creation must return `201 Created` with the created `Idea` object.
+ - **FR-014**: The system MUST allow an idea author to attach file metadata via `POST /api/ideas/attach` with `{ ideaId, filename, url, mimetype, size }`. The endpoint MUST verify ownership (caller is `authorId`), validate file extension and size limits, and persist an `Attachment` linked to the `Idea`. The endpoint MUST return `201 Created` on success and enforce the single-vs-multiple attachment policy documented in the spec (reject with `409 Conflict` if single-attachment is enforced and an attachment already exists, or accept additional attachments if multiple are allowed).
+ - **FR-015**: The system MUST allow users with `EVALUATOR` or `ADMIN` roles to submit evaluations via `POST /api/evaluations` with `{ ideaId, decision, comments }`. The endpoint MUST validate the evaluator role, ensure the `decision` is one of the allowed values (`ACCEPTED` or `REJECTED`), prevent evaluations when the idea is already final (return `409 Conflict`), persist an `Evaluation` record on success, and update the `Idea.status` atomically with the evaluation.
+
 ### Key Entities
 
 - **User**: represents a human account. Key attributes: `id`, `email` (unique), `passwordHash`, `createdAt`, `updatedAt`, `status` (active/disabled), `lastLoginAt`.
 - **AuthToken / Session**: represents issued tokens or session records for revocation. Attributes: `tokenId` (or jti), `userId`, `issuedAt`, `expiresAt`, `revoked` flag. Refresh tokens for clients are delivered via HttpOnly, Secure, SameSite cookies; server-side records support rotation and revocation.
  - **AuthToken / Session**: represents issued tokens or session records for revocation. Attributes: `tokenId` (or jti), `userId`, `issuedAt`, `expiresAt`, `revoked` flag. Refresh tokens for clients are delivered via HttpOnly, Secure, SameSite cookies; server-side records support rotation and revocation. Refresh-token records SHOULD include `lastUsedAt`, `parentTokenId` (for rotate-on-use detection), and `expiresAt` (default TTL: 7 days for refresh tokens).
 - **AuditEvent (AuthEvent)**: lightweight record for observability: `eventType` (register/login_success/login_failure/logout), `userId?`, `ip`, `userAgent`, `timestamp`.
+
+ - **Idea**: represents a submitted idea. Key attributes: `id`, `title`, `description`, `category`, `status` (enum: `SUBMITTED` | `UNDER_REVIEW` | `ACCEPTED` | `REJECTED`), `authorId`, `createdAt`, `updatedAt`. Relations: has-many `Attachment`, has-many `Evaluation`.
+
+ - **Attachment**: metadata record for files attached to an Idea. Key attributes: `id`, `ideaId`, `filename`, `url`, `mimetype`, `size`, `createdAt`. Constraints: `mimetype` and `size` must be validated; consider optional uniqueness constraint when single-attachment policy is chosen.
+
+ - **Evaluation**: record representing an evaluator decision. Key attributes: `id`, `ideaId`, `evaluatorId`, `decision` (`ACCEPTED` | `REJECTED`), `comments`, `createdAt`. Side-effect: updates `Idea.status` atomically.
+
+ - **Role**: enumerated on `User` as `SUBMITTER` | `EVALUATOR` | `ADMIN`. Roles determine what endpoints and data each user can access.
 
 ## Success Criteria *(mandatory)*
 
@@ -128,11 +204,36 @@ All endpoints follow REST semantics and return JSON errors with a structured sha
   - Success: `204 No Content` on success
   - Errors: `401 Unauthorized` (missing/invalid token)
 
+
+
+## Gaps / Missing implementations (observed)
+
+- Refresh-token rotation and rotate-on-use server-side revocation: the spec requires rotate-on-use refresh tokens delivered via `Set-Cookie` and server-side records. Current `POST /api/auth/login` sets a placeholder refresh cookie and `POST /api/auth/logout` clears cookies and calls revocation helpers; full rotate-on-use flow is not implemented and should be delivered to satisfy FR-004/SC-005.
+- Single-file vs multiple attachments: course guide requested "single file attachment per idea" while the code and DB model support multiple attachments per idea. The checklist has been updated to reflect multiple attachments; decide whether to enforce single-attachment behavior (reject additional uploads) or accept multiple attachments (current behavior).
+- `UNDER_REVIEW` transitional status: while `SUBMITTED` and final statuses (`ACCEPTED`/`REJECTED`) are implemented, there is no explicit transition to `UNDER_REVIEW` in the evaluation flow; add a workflow step if required by acceptance tests.
+
 ## Input Validation Rules
 
 - `email`: required, must match a reasonable email pattern (e.g. `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`), will be normalized to lowercase before uniqueness check.
 - `password`: required, minimum length 8 characters, maximum 128 characters; additional complexity rules optional (documented in plan).
 - All inputs must be validated server-side and return field-level error details (avoid leaking implementation internals).
+
+Additional validation rules for Idea/Attachment/Evaluation:
+
+- `title`: required, non-empty, max length 256 characters.
+- `description`: required, non-empty, max length 5000 characters.
+- `category`: required, must be one of allowed categories (documented in plan) or a free-text string with max length 100.
+- `ideaId`: required for attachment/evaluation endpoints; must be a valid UUID and exist in DB.
+- Attachment metadata:
+  - `filename`: required, max length 255, must not contain path traversal characters.
+  - `mimetype`: required, must be in allowed list (default whitelist: `application/pdf`, `image/png`, `image/jpeg`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (`.docx`)).
+  - `size`: required, numeric, must be <= `MAX_ATTACHMENT_BYTES` (assumed default 10 * 1024 * 1024 = 10MB unless overridden in config).
+  - `url`: required, must be an HTTPS URL or signed URL from configured storage provider.
+- Evaluation payload:
+  - `decision`: required, allowed values `ACCEPTED` | `REJECTED` (case-sensitive).
+  - `comments`: optional, max length 2000 characters.
+
+All validation failures should be returned as `400 Bad Request` with `fields` describing the specific errors.
 
 ## Tests to Generate (TDD-first)
 
@@ -142,6 +243,11 @@ All tests MUST be written first and fail (TDD). Tests should be deterministic an
   - `auth/validators.test.ts`: email and password validation edge cases
   - `auth/hash.test.ts`: password hashing and verification functions (mock hashing backend in unit tests)
   - `auth/service.test.ts`: business logic for `createUser`, `verifyCredentials`, `generateToken` with mocked DB
+
+ - Idea/Attachment/Evaluation unit tests
+   - `ideas/validators.test.ts`: validate `title`, `description`, `category` edge cases
+   - `attachments/validators.test.ts`: mimetype whitelist and size limit checks
+   - `evaluation/service.test.ts`: atomic update of `Idea.status` and concurrency conflict handling (mock DB transaction failures)
 
 - Integration tests (API)
   - `tests/integration/auth.register.test.ts`:
@@ -154,6 +260,22 @@ All tests MUST be written first and fail (TDD). Tests should be deterministic an
   - `tests/integration/auth.logout.test.ts`:
     - logout invalidates token; subsequent access with same token is `401`
   - `tests/integration/auth.refresh.test.ts`:
+      - `tests/integration/ideas.create.test.ts`:
+        - submitter can create idea (201)
+        - missing fields returns 400
+      - `tests/integration/ideas.visibility.test.ts`:
+        - evaluator/admin sees all ideas
+        - submitter sees only own ideas
+        - unauthenticated request gets 401
+      - `tests/integration/attachments.test.ts`:
+        - author can attach allowed file (201)
+        - disallowed mime or oversized file rejected (415/413)
+        - when single-attachment policy enforced, second attach returns 409
+      - `tests/integration/evaluations.test.ts`:
+        - evaluator can accept/reject and idea status updates atomically (201)
+        - attempt to evaluate already final idea returns 409
+        - non-evaluator attempting to evaluate returns 403
+        - concurrent evaluation attempts result in one success and one 409 (simulate concurrency)
     - refresh token rotate-on-use behavior: using a refresh token returns a new refresh token (rotated) and invalidates the previous one
     - reuse of a rotated refresh token must be rejected (detect replay)
     - expired refresh tokens (older than 7 days) must be rejected
@@ -161,9 +283,16 @@ All tests MUST be written first and fail (TDD). Tests should be deterministic an
 - Contract tests
   - Verify response shapes and status codes for auth endpoints (used as guard rails for API consumers)
 
+ - Contract tests for Idea API
+   - Verify `POST /api/ideas`, `GET /api/ideas`, `POST /api/ideas/attach`, and `POST /api/evaluations` response shapes and status codes match the spec.
+
 - Security tests
   - Ensure no secrets appear in responses or logs (scan diffs and CI logs)
   - Brute-force simulation tests (basic throttling validation)
+
+ - Additional security tests
+   - Verify role elevation does not occur via token tampering (reject tokens without server signature).
+   - Ensure signed attachment URLs expire and cannot be reused beyond TTL.
 
 ## Assumptions
 

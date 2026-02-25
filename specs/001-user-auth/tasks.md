@@ -102,6 +102,14 @@ Validation: ALL tasks follow the required checklist format: each line starts wit
 - [x] T054 [US5] Implement evaluation endpoint `POST /api/evaluations/{ideaId}` restricted to evaluator/admin role — src/auth/adapters/evaluations.route.ts
 - [x] T055 [US5] Add integration tests covering status transitions and evaluation comments — tests/integration/ideas.evaluation.test.ts
 
+Phase 13 — Spec / Documentation updates (housekeeping)
+- [x] T056 Update Edge Cases section in `specs/001-user-auth/spec.md` to include role/token drift, attachment races, evaluation concurrency, and single-attachment policy notes — specs/001-user-auth/spec.md
+- [x] T057 Update Key Entities in `specs/001-user-auth/spec.md` to add `Idea`, `Attachment`, `Evaluation`, and `Role` descriptions — specs/001-user-auth/spec.md
+- [x] T058 Update Input Validation Rules in `specs/001-user-auth/spec.md` to include `title`, `description`, `category`, `attachment` and `decision` validations — specs/001-user-auth/spec.md
+- [x] T059 Update Tests to Generate in `specs/001-user-auth/spec.md` to add unit/integration/contract tests for ideas, attachments, and evaluations — specs/001-user-auth/spec.md
+- [x] T060 Update Assumptions and Success Criteria where applicable to reflect idea/evaluation scope (optional adjustments) — specs/001-user-auth/spec.md
+- [x] T061 Mark spec edits complete and commit changes to feature branch (doc-only change) — specs/001-user-auth/spec.md
+
 File: specs/001-user-auth/tasks.md
 
 Summary:

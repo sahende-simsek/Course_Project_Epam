@@ -14,11 +14,11 @@ const AuthClient = {
     }
     return res.json();
   },
-  async register(email: string, password: string) {
+  async register(email: string, password: string, username?: string) {
     const res = await fetch('http://localhost:3000/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, username }),
     });
     if (!res.ok) {
       let body: any;
