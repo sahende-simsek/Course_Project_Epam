@@ -206,12 +206,6 @@ All endpoints follow REST semantics and return JSON errors with a structured sha
 
 
 
-## Gaps / Missing implementations (observed)
-
-- Refresh-token rotation and rotate-on-use server-side revocation: the spec requires rotate-on-use refresh tokens delivered via `Set-Cookie` and server-side records. Current `POST /api/auth/login` sets a placeholder refresh cookie and `POST /api/auth/logout` clears cookies and calls revocation helpers; full rotate-on-use flow is not implemented and should be delivered to satisfy FR-004/SC-005.
-- Single-file vs multiple attachments: course guide requested "single file attachment per idea" while the code and DB model support multiple attachments per idea. The checklist has been updated to reflect multiple attachments; decide whether to enforce single-attachment behavior (reject additional uploads) or accept multiple attachments (current behavior).
-- `UNDER_REVIEW` transitional status: while `SUBMITTED` and final statuses (`ACCEPTED`/`REJECTED`) are implemented, there is no explicit transition to `UNDER_REVIEW` in the evaluation flow; add a workflow step if required by acceptance tests.
-
 ## Input Validation Rules
 
 - `email`: required, must match a reasonable email pattern (e.g. `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`), will be normalized to lowercase before uniqueness check.

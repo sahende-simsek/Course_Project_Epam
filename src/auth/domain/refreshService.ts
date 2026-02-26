@@ -3,6 +3,12 @@ import { generateAccessToken } from './tokenService';
 
 const REFRESH_TTL_MS = 7 * 24 * 3600 * 1000; // 7 days
 
+export async function issueRefreshTokenForUser(userId: string, ip?: string, userAgent?: string) {
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_MS);
+  const created = await refreshRepo.createRefreshToken(userId, expiresAt, ip, userAgent);
+  return created;
+}
+
 export async function rotateRefreshToken(oldTokenId: string, ip?: string, userAgent?: string) {
   const rec = await refreshRepo.findByTokenId(oldTokenId);
   if (!rec) {
@@ -35,6 +41,6 @@ export async function rotateRefreshToken(oldTokenId: string, ip?: string, userAg
 export async function revokeAllRefreshTokensForUser(userId: string) {
   return refreshRepo.revokeAllForUser(userId);
 }
-
-export default { rotateRefreshToken, revokeAllRefreshTokensForUser };
+ 
+export default { issueRefreshTokenForUser, rotateRefreshToken, revokeAllRefreshTokensForUser };
 

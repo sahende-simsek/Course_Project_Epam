@@ -1,5 +1,6 @@
 import { verifyCredentials } from '../../domain/authService';
 import { generateAccessToken } from '../../domain/tokenService';
+import { issueRefreshTokenForUser } from '../../domain/refreshService';
 
 export async function POST(req: Request) {
   try {
@@ -8,9 +9,12 @@ export async function POST(req: Request) {
     const user = await verifyCredentials(email, password);
     const { token, expiresIn } = generateAccessToken(user as any);
 
-    // Placeholder refresh cookie — real refresh flow implemented in Phase 6.
-    const expires = new Date(Date.now() + 7 * 24 * 3600 * 1000).toUTCString();
-    const cookie = `refresh=placeholder; HttpOnly; Secure; SameSite=Lax; Path=/; Expires=${expires}`;
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '';
+    const ua = req.headers.get('user-agent') || '';
+
+    const refresh = await issueRefreshTokenForUser((user as any).id, ip as string, ua as string);
+    const expires = new Date(refresh.expiresAt).toUTCString();
+    const cookie = `refresh=${refresh.tokenId}; HttpOnly; Secure; SameSite=Lax; Path=/; Expires=${expires}`;
 
     return new Response(JSON.stringify({ accessToken: token, expiresIn }), {
       status: 200,

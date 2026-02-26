@@ -145,6 +145,13 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 			},
 		},
 		attachment: {
+			findMany: async ({ where }: any = {}) => {
+				let list: any[] = Object.values(attachments);
+				if (where && where.ideaId) {
+					list = list.filter((att: any) => att.ideaId === where.ideaId);
+				}
+				return list;
+			},
 			deleteMany: async ({ where }: any) => {
 				let count = 0;
 				Object.keys(attachments).forEach((id) => {

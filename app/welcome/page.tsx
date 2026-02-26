@@ -76,12 +76,18 @@ export default function WelcomePage() {
       return;
     }
 
-    const allowed = selected.filter((file) => isAllowedFile(file));
-
-    if (allowed.length !== selected.length) {
-      setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
+    // Enforce single-file policy on the client side
+    let nextFiles = selected.slice(0, 1);
+    if (selected.length > 1) {
+      setError("At most one file can be uploaded.");
     } else {
       setError(null);
+    }
+
+    const allowed = nextFiles.filter((file) => isAllowedFile(file));
+
+    if (allowed.length !== nextFiles.length) {
+      setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
     }
 
     setFiles(allowed);
@@ -103,7 +109,7 @@ export default function WelcomePage() {
         return "Under review";
       case "SUBMITTED":
       default:
-        return "Submitted";
+        return "Submitted (under review)";
     }
   };
 
@@ -330,7 +336,7 @@ export default function WelcomePage() {
           </div>
 
           <div className="idea-form-field">
-            <label htmlFor="attachment">Attachments (you can select multiple files)</label>
+            <label htmlFor="attachment">Attachment (you can select one file)</label>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
               <button
                 type="button"
@@ -345,7 +351,6 @@ export default function WelcomePage() {
               id="attachment"
               name="attachment"
               type="file"
-              multiple
               ref={fileInputRef}
               onChange={handleFilesChange}
               style={{ display: "none" }}

@@ -229,17 +229,4 @@ PHASE K — Effort Estimates & Order
 - Order: Tests (TDD) → Domain → API adapters → Migrations → CI → Docs → Release.  
 - Provide Lo/Med/Hi estimates inline above for each task. Total implementation ~ several days depending on infra and team.
 
-## Immediate PR Checklist (deliverables for first PR)
-
-- [ ] Failing unit tests added for validators and hashing  
-- [ ] Failing integration tests for registration and login (skeleton)  
-- [ ] Basic `createUser` and `verifyCredentials` domain functions with unit tests  
-- [ ] Prisma migration with all new models (`User`, `Idea`, etc.) added (draft)
-- [ ] README/quickstart entry for running tests locally
-
-## Research & Open Questions
-
-- All major clarifications resolved: cookie-based refresh tokens + rotate-on-use + 7-day TTL + 1-hour access TTL.  
-- TBD: exact rate-limiting thresholds and lockout policy — pick sensible defaults in Phase 1 and make configurable via env.
-- TBD: File storage solution for attachments (e.g., local disk for MVP, S3 for production).
 

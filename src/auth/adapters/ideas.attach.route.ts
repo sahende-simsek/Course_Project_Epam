@@ -73,6 +73,18 @@ export async function POST(req: Request) {
       });
     }
 
+    // Enforce single-attachment policy: only one attachment per idea
+    const existingAttachments = await (prisma as any).attachment.findMany({ where: { ideaId } });
+    if (existingAttachments && existingAttachments.length > 0) {
+      return new Response(
+        JSON.stringify({ error: { code: 'attachment_limit', message: 'At most one attachment can be uploaded for an idea' } }),
+        {
+          status: 409,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
     const attachment = await prisma.attachment.create({
       data: { ideaId, filename, url, mimetype, size },
     });

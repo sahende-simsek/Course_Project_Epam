@@ -65,11 +65,16 @@ function WelcomePage() {
             setFiles([]);
             return;
         }
-        const allowed = selected.filter((file)=>isAllowedFile(file));
-        if (allowed.length !== selected.length) {
-            setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
+        // Enforce single-file policy on the client side
+        let nextFiles = selected.slice(0, 1);
+        if (selected.length > 1) {
+            setError("At most one file can be uploaded.");
         } else {
             setError(null);
+        }
+        const allowed = nextFiles.filter((file)=>isAllowedFile(file));
+        if (allowed.length !== nextFiles.length) {
+            setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
         }
         setFiles(allowed);
         if (fileInputRef.current) {
@@ -88,7 +93,7 @@ function WelcomePage() {
                 return "Under review";
             case "SUBMITTED":
             default:
-                return "Submitted";
+                return "Submitted (under review)";
         }
     };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
@@ -252,20 +257,20 @@ function WelcomePage() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 270,
+                        lineNumber: 276,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "From here you can submit a new idea and see your own ideas."
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 271,
+                        lineNumber: 277,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/welcome/page.tsx",
-                lineNumber: 269,
+                lineNumber: 275,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -277,7 +282,7 @@ function WelcomePage() {
                         children: "Submit new idea"
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 275,
+                        lineNumber: 281,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -292,7 +297,7 @@ function WelcomePage() {
                                         children: "Title"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 278,
+                                        lineNumber: 284,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -304,13 +309,13 @@ function WelcomePage() {
                                         required: true
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 279,
+                                        lineNumber: 285,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 277,
+                                lineNumber: 283,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -321,7 +326,7 @@ function WelcomePage() {
                                         children: "Description"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 290,
+                                        lineNumber: 296,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -333,13 +338,13 @@ function WelcomePage() {
                                         rows: 4
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 291,
+                                        lineNumber: 297,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 289,
+                                lineNumber: 295,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -350,7 +355,7 @@ function WelcomePage() {
                                         children: "Category"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 302,
+                                        lineNumber: 308,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -365,7 +370,7 @@ function WelcomePage() {
                                                 children: "Select a category"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 310,
+                                                lineNumber: 316,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -373,7 +378,7 @@ function WelcomePage() {
                                                 children: "Process improvement"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 311,
+                                                lineNumber: 317,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -381,7 +386,7 @@ function WelcomePage() {
                                                 children: "New product"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 312,
+                                                lineNumber: 318,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -389,7 +394,7 @@ function WelcomePage() {
                                                 children: "Customer experience"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 313,
+                                                lineNumber: 319,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -397,7 +402,7 @@ function WelcomePage() {
                                                 children: "Internal tools"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 314,
+                                                lineNumber: 320,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -405,7 +410,7 @@ function WelcomePage() {
                                                 children: "Cost optimization"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 315,
+                                                lineNumber: 321,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -413,13 +418,13 @@ function WelcomePage() {
                                                 children: "Other"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 316,
+                                                lineNumber: 322,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 303,
+                                        lineNumber: 309,
                                         columnNumber: 13
                                     }, this),
                                     category === "__OTHER__" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -432,20 +437,20 @@ function WelcomePage() {
                                         required: true
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 319,
+                                        lineNumber: 325,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
                                         children: "You can choose a category from the list or select Other and type your own."
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 329,
+                                        lineNumber: 335,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 301,
+                                lineNumber: 307,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -453,10 +458,10 @@ function WelcomePage() {
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                         htmlFor: "attachment",
-                                        children: "Attachments (you can select multiple files)"
+                                        children: "Attachment (you can select one file)"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 333,
+                                        lineNumber: 339,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -474,27 +479,26 @@ function WelcomePage() {
                                                 children: "Choose files"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 335,
+                                                lineNumber: 341,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: files.length > 0 ? `${files.length} file(s) selected` : "No files selected"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 342,
+                                                lineNumber: 348,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 334,
+                                        lineNumber: 340,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                         id: "attachment",
                                         name: "attachment",
                                         type: "file",
-                                        multiple: true,
                                         ref: fileInputRef,
                                         onChange: handleFilesChange,
                                         style: {
@@ -502,14 +506,14 @@ function WelcomePage() {
                                         }
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 344,
+                                        lineNumber: 350,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
                                         children: "Allowed file types: pdf, doc, docx, xls, xlsx, ppt, pptx."
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 353,
+                                        lineNumber: 358,
                                         columnNumber: 13
                                     }, this),
                                     files.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -543,24 +547,24 @@ function WelcomePage() {
                                                         children: "Remove"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/welcome/page.tsx",
-                                                        lineNumber: 361,
+                                                        lineNumber: 366,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, `${file.name}-${index}`, true, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 359,
+                                                lineNumber: 364,
                                                 columnNumber: 19
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 357,
+                                        lineNumber: 362,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 332,
+                                lineNumber: 338,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -572,18 +576,18 @@ function WelcomePage() {
                                     children: submitting ? "Submitting..." : "Submit idea"
                                 }, void 0, false, {
                                     fileName: "[project]/app/welcome/page.tsx",
-                                    lineNumber: 389,
+                                    lineNumber: 394,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 388,
+                                lineNumber: 393,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 276,
+                        lineNumber: 282,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -595,7 +599,7 @@ function WelcomePage() {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 395,
+                        lineNumber: 400,
                         columnNumber: 11
                     }, this),
                     success && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -607,13 +611,13 @@ function WelcomePage() {
                         children: success
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 400,
+                        lineNumber: 405,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/welcome/page.tsx",
-                lineNumber: 274,
+                lineNumber: 280,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -625,20 +629,20 @@ function WelcomePage() {
                         children: "Your ideas"
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 407,
+                        lineNumber: 412,
                         columnNumber: 9
                     }, this),
                     loadingIdeas ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "Loading..."
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 409,
+                        lineNumber: 414,
                         columnNumber: 11
                     }, this) : ideas.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "You do not have any ideas yet."
                     }, void 0, false, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 411,
+                        lineNumber: 416,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "idea-table",
@@ -650,41 +654,41 @@ function WelcomePage() {
                                         children: "Title & description"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 415,
+                                        lineNumber: 420,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Category"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 416,
+                                        lineNumber: 421,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Status"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 417,
+                                        lineNumber: 422,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Admin comment"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 418,
+                                        lineNumber: 423,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Attachments"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 419,
+                                        lineNumber: 424,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 414,
+                                lineNumber: 419,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -698,20 +702,20 @@ function WelcomePage() {
                                                         children: idea.title
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/welcome/page.tsx",
-                                                        lineNumber: 425,
+                                                        lineNumber: 430,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                         children: idea.description
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/welcome/page.tsx",
-                                                        lineNumber: 426,
+                                                        lineNumber: 431,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 424,
+                                                lineNumber: 429,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -719,12 +723,12 @@ function WelcomePage() {
                                                     children: idea.category
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome/page.tsx",
-                                                    lineNumber: 429,
+                                                    lineNumber: 434,
                                                     columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 428,
+                                                lineNumber: 433,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -732,12 +736,12 @@ function WelcomePage() {
                                                     children: renderStatus(idea.status)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome/page.tsx",
-                                                    lineNumber: 432,
+                                                    lineNumber: 437,
                                                     columnNumber: 37
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 431,
+                                                lineNumber: 436,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -753,18 +757,18 @@ function WelcomePage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/welcome/page.tsx",
-                                                    lineNumber: 436,
+                                                    lineNumber: 441,
                                                     columnNumber: 23
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     children: "-"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome/page.tsx",
-                                                    lineNumber: 440,
+                                                    lineNumber: 445,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 434,
+                                                lineNumber: 439,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -776,52 +780,52 @@ function WelcomePage() {
                                                             children: att.filename
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/welcome/page.tsx",
-                                                            lineNumber: 447,
+                                                            lineNumber: 452,
                                                             columnNumber: 27
                                                         }, this)
                                                     }, att.id, false, {
                                                         fileName: "[project]/app/welcome/page.tsx",
-                                                        lineNumber: 446,
+                                                        lineNumber: 451,
                                                         columnNumber: 25
                                                     }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     children: "-"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome/page.tsx",
-                                                    lineNumber: 453,
+                                                    lineNumber: 458,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome/page.tsx",
-                                                lineNumber: 443,
+                                                lineNumber: 448,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, idea.id, true, {
                                         fileName: "[project]/app/welcome/page.tsx",
-                                        lineNumber: 423,
+                                        lineNumber: 428,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/app/welcome/page.tsx",
-                                lineNumber: 421,
+                                lineNumber: 426,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/welcome/page.tsx",
-                        lineNumber: 413,
+                        lineNumber: 418,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/welcome/page.tsx",
-                lineNumber: 406,
+                lineNumber: 411,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/welcome/page.tsx",
-        lineNumber: 268,
+        lineNumber: 274,
         columnNumber: 5
     }, this);
 }
