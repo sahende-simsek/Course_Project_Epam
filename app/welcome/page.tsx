@@ -40,6 +40,7 @@ export default function WelcomePage() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loadingIdeas, setLoadingIdeas] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -270,11 +271,87 @@ export default function WelcomePage() {
     }
   };
 
+  const handleSaveDraft = async () => {
+    if (!accessToken) {
+      router.replace("/login");
+      return;
+    }
+    setError(null);
+    setSuccess(null);
+
+    const finalCategory = category === "__OTHER__" ? otherCategory.trim() : category || "other";
+
+    if (!title || !description) {
+      setError("Title and description are required to save a draft.");
+      return;
+    }
+
+    setSavingDraft(true);
+    try {
+      const res = await fetch("http://localhost:3000/api/drafts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          category: finalCategory,
+          dynamicFieldValues: {},
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const msg = body?.error?.message || `Failed to save draft (${res.status})`;
+        throw new Error(msg);
+      }
+      const draft = await res.json();
+
+      if (files.length > 0) {
+        const contents = await Promise.all(files.map((file) => readFileAsBase64(file)));
+        await Promise.all(
+          files.map((file, index) =>
+            fetch("http://localhost:3000/api/drafts/attach", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify({
+                draftId: draft.id,
+                filename: file.name,
+                mimetype: file.type || "application/octet-stream",
+                size: file.size,
+                contentBase64: contents[index],
+              }),
+            })
+          )
+        );
+      }
+
+      setSuccess("Draft saved.");
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to save draft");
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
   return (
     <main className="welcome-page">
       <section className="welcome-header">
         <h1>Welcome{displayName ? `, ${displayName}` : ""}</h1>
-        <p>From here you can submit a new idea and see your own ideas.</p>
+        <p>From here you can submit a new idea, save it as a draft, and see your own ideas.</p>
+        <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => router.push("/ideas/drafts")}
+          >
+            My drafts
+          </button>
+        </div>
       </section>
 
       <section className="card" aria-labelledby="idea-form-heading">
@@ -390,7 +467,15 @@ export default function WelcomePage() {
             )}
           </div>
 
-          <div className="idea-form-actions">
+          <div className="idea-form-actions" style={{ display: "flex", gap: "0.5rem" }}>
+            <button
+              type="button"
+              disabled={savingDraft}
+              className="btn secondary"
+              onClick={() => void handleSaveDraft()}
+            >
+              {savingDraft ? "Saving draft..." : "Save as draft"}
+            </button>
             <button type="submit" disabled={submitting} className="btn">
               {submitting ? "Submitting..." : "Submit idea"}
             </button>

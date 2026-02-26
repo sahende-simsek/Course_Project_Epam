@@ -8,6 +8,10 @@ export interface Config {
   // ADMIN_EMAIL_DOMAINS: domain list (e.g. "company.com,corp.local")
   ADMIN_EMAILS?: string[];
   ADMIN_EMAIL_DOMAINS?: string[];
+  // Attachment & scoring limits for advanced idea workflow
+  MAX_ATTACHMENT_BYTES?: number;
+  MAX_ATTACHMENTS_PER_IDEA?: number;
+  IDEAS_FINAL_SCORE_THRESHOLD?: number;
 }
 
 export function getConfig(): Config {
@@ -20,6 +24,15 @@ export function getConfig(): Config {
       : undefined,
     ADMIN_EMAIL_DOMAINS: process.env.ADMIN_EMAIL_DOMAINS
       ? process.env.ADMIN_EMAIL_DOMAINS.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+      : undefined,
+    MAX_ATTACHMENT_BYTES: process.env.MAX_ATTACHMENT_BYTES
+      ? Number(process.env.MAX_ATTACHMENT_BYTES)
+      : undefined,
+    MAX_ATTACHMENTS_PER_IDEA: process.env.MAX_ATTACHMENTS_PER_IDEA
+      ? Number(process.env.MAX_ATTACHMENTS_PER_IDEA)
+      : undefined,
+    IDEAS_FINAL_SCORE_THRESHOLD: process.env.IDEAS_FINAL_SCORE_THRESHOLD
+      ? Number(process.env.IDEAS_FINAL_SCORE_THRESHOLD)
       : undefined,
   };
 

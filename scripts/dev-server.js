@@ -35,7 +35,7 @@ async function handleRequest(req, res) {
     const origin = req.headers.origin || 'http://localhost:3001';
     res.writeHead(204, {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Allow-Credentials': 'true'
     });
@@ -254,14 +254,20 @@ async function handleRequest(req, res) {
       const attachmentId = parts[parts.length - 1];
 
       try {
-        const attachment = await prisma.attachment.findUnique({
+        let attachment = await prisma.attachment.findUnique({
           where: { id: attachmentId },
           include: { idea: true },
         });
 
+        let isDraftAttachment = false;
         if (!attachment) {
-          res.writeHead(404, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Attachment not found' }));
+          const draftAttachment = await prisma.draftAttachment.findUnique({ where: { id: attachmentId } });
+          if (!draftAttachment) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Attachment not found' }));
+          }
+          attachment = draftAttachment;
+          isDraftAttachment = true;
         }
 
         res.writeHead(200, {
@@ -274,6 +280,245 @@ async function handleRequest(req, res) {
       } catch (err) {
         console.error('failed to serve attachment', err && err.stack ? err.stack : err);
         return jsonResponse(res, 500, { error: 'failed to load attachment' });
+      }
+    }
+
+    if (method === 'POST' && parsed.pathname === '/api/drafts/attach') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const { draftId, filename, contentBase64, mimetype, size } = data;
+      const prisma = require('../dist/auth/infra/prismaClient').default;
+      const allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+      const idx = filename && filename.lastIndexOf('.');
+      const ext = idx !== -1 && typeof filename === 'string' ? filename.slice(idx + 1).toLowerCase() : '';
+      if (!ext || !allowedExt.includes(ext)) {
+        return jsonResponse(res, 415, {
+          error: 'Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed',
+        });
+      }
+      try {
+        const draft = await prisma.draft.findUnique({ where: { id: draftId } });
+        if (!draft) return jsonResponse(res, 404, { error: 'Draft not found' });
+        if (draft.ownerUserId !== userId) return jsonResponse(res, 403, { error: 'Only the owner can attach files to draft' });
+
+        let contentBuffer = null;
+        if (typeof contentBase64 === 'string' && contentBase64.length > 0) {
+          try {
+            contentBuffer = Buffer.from(contentBase64, 'base64');
+          } catch (_) {
+            // fall through to validation error
+          }
+        }
+
+        if (!contentBuffer) {
+          return jsonResponse(res, 400, { error: 'invalid attachment content' });
+        }
+
+        const createdAttachment = await prisma.draftAttachment.create({
+          data: {
+            draftId,
+            filename,
+            url: '',
+            mimetype: mimetype || 'application/octet-stream',
+            size,
+            content: contentBuffer,
+          },
+        });
+
+        const publicUrl = `http://localhost:${PORT}/api/attachments/${createdAttachment.id}`;
+
+        const attachment = await prisma.draftAttachment.update({
+          where: { id: createdAttachment.id },
+          data: { url: publicUrl },
+        });
+
+        return jsonResponse(res, 201, attachment);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to attach file to draft';
+        return jsonResponse(res, status, { error: message });
+      }
+    }
+
+    if (method === 'DELETE' && parsed.pathname && parsed.pathname.startsWith('/api/drafts/attachments/')) {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const prisma = require('../dist/auth/infra/prismaClient').default;
+      const parts = parsed.pathname.split('/');
+      const attachmentId = parts[parts.length - 1];
+
+      try {
+        const att = await prisma.draftAttachment.findUnique({ where: { id: attachmentId }, include: { draft: true } });
+        if (!att) return jsonResponse(res, 404, { error: 'Attachment not found' });
+        if (!att.draft || att.draft.ownerUserId !== userId) {
+          return jsonResponse(res, 403, { error: 'Only the owner can remove draft attachments' });
+        }
+
+        await prisma.draftAttachment.delete({ where: { id: attachmentId } });
+        return jsonResponse(res, 204, {});
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to delete draft attachment';
+        return jsonResponse(res, status, { error: message });
+      }
+    }
+
+    // Drafts API – basic CRUD and submit-from-draft
+    if (method === 'POST' && parsed.pathname === '/api/drafts') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const { title, description, category, dynamicFieldValues } = data;
+      try {
+        const { createDraft } = require('../dist/auth/domain/draftService');
+        const draft = await createDraft({
+          ownerUserId: userId,
+          title,
+          description,
+          category,
+          dynamicFieldValues: dynamicFieldValues || {},
+        });
+        return jsonResponse(res, 201, draft);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to create draft';
+        return jsonResponse(res, status, { error: message });
+      }
+    }
+
+    if (method === 'GET' && parsed.pathname === '/api/drafts') {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const { listDraftsForUser, getDraftForUser } = require('../dist/auth/domain/draftService');
+      const id = (parsed.query && parsed.query.id) || undefined;
+      try {
+        if (id) {
+          const draft = await getDraftForUser(id, userId);
+          if (!draft) return jsonResponse(res, 404, { error: 'Draft not found' });
+          return jsonResponse(res, 200, draft);
+        }
+        const drafts = await listDraftsForUser(userId);
+        return jsonResponse(res, 200, drafts);
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to load drafts';
+        return jsonResponse(res, status, { error: message });
+      }
+    }
+
+    if ((method === 'PUT' || method === 'DELETE' || method === 'POST') && parsed.pathname && parsed.pathname.startsWith('/api/drafts/')) {
+      const auth = req.headers['authorization'] || '';
+      if (!auth.startsWith('Bearer ')) return jsonResponse(res, 401, { error: 'missing or invalid token' });
+      const token = auth.slice('Bearer '.length);
+      let userId;
+      try {
+        const jwt = require('jsonwebtoken');
+        const getConfig = require('../dist/config').default;
+        const decoded = jwt.verify(token, getConfig.JWT_SECRET || 'dev-secret');
+        userId = decoded && decoded.sub;
+      } catch (_) {
+        return jsonResponse(res, 401, { error: 'invalid token' });
+      }
+
+      const parts = parsed.pathname.split('/');
+      const draftId = parts[3];
+      const action = parts[4];
+
+      const { updateDraft, deleteDraft, submitDraft } = require('../dist/auth/domain/draftService');
+
+      try {
+        if (method === 'PUT' && draftId && !action) {
+          const { title, description, category, dynamicFieldValues } = data;
+          const updated = await updateDraft({
+            draftId,
+            ownerUserId: userId,
+            title,
+            description,
+            category,
+            dynamicFieldValues,
+          });
+          return jsonResponse(res, 200, updated);
+        }
+
+        if (method === 'DELETE' && draftId && !action) {
+          await deleteDraft(draftId, userId);
+          return jsonResponse(res, 204, {});
+        }
+
+        if (method === 'POST' && draftId && action === 'submit') {
+          const prisma = require('../dist/auth/infra/prismaClient').default;
+          const result = await submitDraft({ draftId, ownerUserId: userId });
+
+          // Promote draft attachments to idea attachments
+          const draftAttachments = await prisma.draftAttachment.findMany({ where: { draftId } });
+          for (const da of draftAttachments) {
+            const createdAttachment = await prisma.attachment.create({
+              data: {
+                ideaId: result.idea.id,
+                filename: da.filename,
+                url: '',
+                mimetype: da.mimetype || 'application/octet-stream',
+                size: da.size,
+                content: da.content,
+              },
+            });
+            const publicUrl = `http://localhost:${PORT}/api/attachments/${createdAttachment.id}`;
+            await prisma.attachment.update({
+              where: { id: createdAttachment.id },
+              data: { url: publicUrl },
+            });
+          }
+          await prisma.draftAttachment.deleteMany({ where: { draftId } });
+
+          return jsonResponse(res, 201, result.idea);
+        }
+      } catch (err) {
+        const status = (err && err.status) || 400;
+        const message = (err && err.message) || 'failed to handle draft request';
+        return jsonResponse(res, status, { error: message });
       }
     }
 

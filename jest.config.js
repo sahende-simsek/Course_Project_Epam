@@ -6,6 +6,7 @@ module.exports = {
   testPathIgnorePatterns: ['/tests/e2e/'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
+  coveragePathIgnorePatterns: ['/node_modules/', '/src/auth/infra/prismaClient.ts'],
   coverageThreshold: {
     global: {
       branches: 70,

@@ -11,7 +11,7 @@ __turbopack_context__.n(__turbopack_context__.i("[project]/app/layout.tsx [app-r
 }),
 "[project]/app/welcome-admin/page.tsx [app-rsc] (ecmascript)", ((__turbopack_context__, module, exports) => {
 
-const e = new Error("Could not parse module '[project]/app/welcome-admin/page.tsx'\n\nExpected '</', got ']'");
+const e = new Error("Could not parse module '[project]/app/welcome-admin/page.tsx'\n\nUnexpected token. Did you mean `{'>'}` or `&gt;`?");
 e.code = 'MODULE_UNPARSABLE';
 throw e;
 }),

@@ -1,0 +1,436 @@
+(globalThis.TURBOPACK || (globalThis.TURBOPACK = [])).push([typeof document === "object" ? document.currentScript : undefined,
+"[project]/src/frontend/app/ideas/drafts/page.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>DraftsPage
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
+;
+var _s = __turbopack_context__.k.signature();
+"use client";
+;
+;
+function DraftsPage() {
+    _s();
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
+    const [accessToken, setAccessToken] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [drafts, setDrafts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const fileInputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "DraftsPage.useEffect": ()=>{
+            const token = ("TURBOPACK compile-time truthy", 1) ? window.localStorage.getItem("accessToken") : "TURBOPACK unreachable";
+            if (!token) {
+                router.replace("/login");
+                return;
+            }
+            setAccessToken(token);
+            void loadDrafts(token);
+        }
+    }["DraftsPage.useEffect"], [
+        router
+    ]);
+    const loadDrafts = async (token)=>{
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch("http://localhost:3000/api/drafts", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (!res.ok) {
+                setError(`Failed to load drafts (${res.status})`);
+                return;
+            }
+            const data = await res.json();
+            setDrafts(data || []);
+        } catch (err) {
+            setError(err?.message ?? "Failed to load drafts");
+        } finally{
+            setLoading(false);
+        }
+    };
+    const handleDelete = async (id)=>{
+        if (!accessToken) return;
+        setError(null);
+        try {
+            const res = await fetch(`http://localhost:3000/api/drafts/${encodeURIComponent(id)}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            });
+            if (!res.ok && res.status !== 204) {
+                const body = await res.json().catch(()=>null);
+                const msg = body?.error || body?.error?.message || `Failed to delete draft (${res.status})`;
+                throw new Error(msg);
+            }
+            setDrafts((prev)=>prev.filter((d)=>d.id !== id));
+        } catch (err) {
+            setError(err?.message ?? "Failed to delete draft");
+        }
+    };
+    const handleSubmit = async (id)=>{
+        if (!accessToken) return;
+        setError(null);
+        try {
+            const res = await fetch(`http://localhost:3000/api/drafts/${encodeURIComponent(id)}/submit`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({})
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(()=>null);
+                const msg = body?.error || body?.error?.message || `Failed to submit draft (${res.status})`;
+                throw new Error(msg);
+            }
+            // After submit, refresh list and redirect to welcome for simplicity
+            await loadDrafts(accessToken);
+            router.push("/welcome");
+        } catch (err) {
+            setError(err?.message ?? "Failed to submit draft");
+        }
+    };
+    const handleResume = (id)=>{
+        router.push(`/ideas/new?draftId=${encodeURIComponent(id)}`);
+    };
+    const handleRemoveAttachment = async (attachmentId)=>{
+        if (!accessToken) return;
+        setError(null);
+        try {
+            const res = await fetch(`http://localhost:3000/api/drafts/attachments/${encodeURIComponent(attachmentId)}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            });
+            if (!res.ok && res.status !== 204) {
+                const body = await res.json().catch(()=>null);
+                const msg = body?.error || body?.error?.message || `Failed to delete attachment (${res.status})`;
+                throw new Error(msg);
+            }
+            setDrafts((prev)=>prev.map((d)=>!d.attachments ? d : {
+                        ...d,
+                        attachments: d.attachments.filter((a)=>a.id !== attachmentId)
+                    }));
+        } catch (err) {
+            setError(err?.message ?? "Failed to delete attachment");
+        }
+    };
+    const handleAddAttachment = async (draftId, file)=>{
+        if (!accessToken) return;
+        setError(null);
+        // Check if the draft already has an attachment
+        const draft = drafts.find((d)=>d.id === draftId);
+        if (draft && draft.attachments && draft.attachments.length > 0) {
+            setError("This draft already has an attachment. Please remove it before adding a new one.");
+            return;
+        }
+        try {
+            const contents = await new Promise((resolve, reject)=>{
+                const reader = new FileReader();
+                reader.onload = ()=>{
+                    const result = reader.result;
+                    if (typeof result === "string") {
+                        const base64 = result.includes(",") ? result.split(",")[1] : result;
+                        resolve(base64);
+                    } else {
+                        reject(new Error("Failed to read file"));
+                    }
+                };
+                reader.onerror = ()=>reject(reader.error || new Error("Failed to read file"));
+                reader.readAsDataURL(file);
+            });
+            const res = await fetch("http://localhost:3000/api/drafts/attach", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    draftId,
+                    filename: file.name,
+                    mimetype: file.type || "application/octet-stream",
+                    size: file.size,
+                    contentBase64: contents
+                })
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(()=>null);
+                const msg = body?.error || body?.error?.message || `Failed to add attachment (${res.status})`;
+                throw new Error(msg);
+            }
+            const newAttachment = await res.json();
+            setDrafts((prev)=>prev.map((d)=>d.id === draftId ? {
+                        ...d,
+                        attachments: [
+                            ...d.attachments || [],
+                            newAttachment
+                        ]
+                    } : d));
+        } catch (err) {
+            setError(err?.message ?? "Failed to add attachment");
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
+        className: "welcome-page",
+        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+            className: "card",
+            "aria-labelledby": "drafts-heading",
+            children: [
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    style: {
+                        marginBottom: "0.75rem"
+                    },
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        type: "button",
+                        className: "btn secondary",
+                        onClick: ()=>router.push("/welcome"),
+                        children: "Back to home"
+                    }, void 0, false, {
+                        fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                        lineNumber: 197,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                    lineNumber: 196,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                    id: "drafts-heading",
+                    children: "My Drafts"
+                }, void 0, false, {
+                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                    lineNumber: 205,
+                    columnNumber: 9
+                }, this),
+                loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                    children: "Loading drafts…"
+                }, void 0, false, {
+                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                    lineNumber: 206,
+                    columnNumber: 21
+                }, this),
+                error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    role: "alert",
+                    style: {
+                        color: "red",
+                        marginTop: "0.5rem"
+                    },
+                    children: error
+                }, void 0, false, {
+                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                    lineNumber: 208,
+                    columnNumber: 11
+                }, this),
+                !loading && drafts.length === 0 && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                    children: "You have no drafts yet."
+                }, void 0, false, {
+                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                    lineNumber: 212,
+                    columnNumber: 55
+                }, this),
+                !loading && drafts.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                    className: "idea-list",
+                    children: drafts.map((draft)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                            className: "idea-item",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                            children: draft.title
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                            lineNumber: 218,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            children: draft.description
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                            lineNumber: 219,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
+                                            children: draft.category
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                            lineNumber: 220,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                marginTop: "0.5rem"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                    children: "Attachments:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                    lineNumber: 222,
+                                                    columnNumber: 21
+                                                }, this),
+                                                draft.attachments && draft.attachments.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                    children: draft.attachments.map((att)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                                                                    href: att.url,
+                                                                    target: "_blank",
+                                                                    rel: "noopener noreferrer",
+                                                                    children: att.filename
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                                    lineNumber: 227,
+                                                                    columnNumber: 29
+                                                                }, this),
+                                                                " ",
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                    type: "button",
+                                                                    className: "btn secondary",
+                                                                    style: {
+                                                                        marginLeft: "0.5rem"
+                                                                    },
+                                                                    onClick: ()=>void handleRemoveAttachment(att.id),
+                                                                    children: "Remove"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                                    lineNumber: 230,
+                                                                    columnNumber: 29
+                                                                }, this)
+                                                            ]
+                                                        }, att.id, true, {
+                                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                            lineNumber: 226,
+                                                            columnNumber: 27
+                                                        }, this))
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                    lineNumber: 224,
+                                                    columnNumber: 23
+                                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    style: {
+                                                        marginTop: "0.25rem"
+                                                    },
+                                                    children: "No attachments."
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                    lineNumber: 242,
+                                                    columnNumber: 23
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        marginTop: "0.5rem"
+                                                    },
+                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                        type: "file",
+                                                        ref: fileInputRef,
+                                                        onChange: (e)=>{
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                void handleAddAttachment(draft.id, file);
+                                                                e.target.value = "";
+                                                            }
+                                                        }
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                        lineNumber: 245,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                                    lineNumber: 244,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                            lineNumber: 221,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                    lineNumber: 217,
+                                    columnNumber: 17
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        display: "flex",
+                                        gap: "0.5rem"
+                                    },
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            type: "button",
+                                            className: "btn",
+                                            onClick: ()=>handleSubmit(draft.id),
+                                            children: "Submit"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                            lineNumber: 260,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            type: "button",
+                                            className: "btn secondary",
+                                            onClick: ()=>handleDelete(draft.id),
+                                            children: "Delete"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                            lineNumber: 263,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                                    lineNumber: 259,
+                                    columnNumber: 17
+                                }, this)
+                            ]
+                        }, draft.id, true, {
+                            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                            lineNumber: 216,
+                            columnNumber: 15
+                        }, this))
+                }, void 0, false, {
+                    fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+                    lineNumber: 214,
+                    columnNumber: 11
+                }, this)
+            ]
+        }, void 0, true, {
+            fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+            lineNumber: 195,
+            columnNumber: 7
+        }, this)
+    }, void 0, false, {
+        fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
+        lineNumber: 194,
+        columnNumber: 5
+    }, this);
+}
+_s(DraftsPage, "bOALmbh4SiYHgvQTE101pa+Zd5U=", false, function() {
+    return [
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
+    ];
+});
+_c = DraftsPage;
+var _c;
+__turbopack_context__.k.register(_c, "DraftsPage");
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+]);
+
+//# sourceMappingURL=src_frontend_app_ideas_drafts_page_tsx_776fe50d._.js.map

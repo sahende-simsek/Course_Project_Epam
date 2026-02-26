@@ -45,6 +45,8 @@ model Idea {
   author      User         @relation(fields: [authorId], references: [id])
   attachments Attachment[]
   evaluations Evaluation[]
+  currentStageId String?
+  currentStage   ReviewStage? @relation(fields: [currentStageId], references: [id])
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -71,6 +73,63 @@ model Evaluation {
   createdAt   DateTime   @default(now())
 }
 
+model Draft {
+  id                 String      @id @default(cuid())
+  ownerUserId        String
+  title              String
+  description        String
+  category           String
+  dynamicFieldValues Json
+  linkedIdeaId       String?
+  status             DraftStatus @default(DRAFT)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  attachments        DraftAttachment[]
+}
+
+model DraftAttachment {
+  id        String   @id @default(cuid())
+  draftId   String
+  draft     Draft    @relation(fields: [draftId], references: [id])
+  filename  String
+  url       String
+  mimetype  String
+  size      Int
+  content   Bytes
+  createdAt DateTime @default(now())
+}
+
+model ReviewStage {
+  id             String        @id @default(cuid())
+  name           String
+  description    String
+  orderIndex     Int
+  isBlind        Boolean       @default(false)
+  assignmentRule String
+  exitRule       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  stageReviews   StageReview[]
+  ideas          Idea[]
+}
+
+model StageReview {
+  id              String        @id @default(cuid())
+  ideaId          String
+  idea            Idea          @relation(fields: [ideaId], references: [id])
+  stageId         String
+  stage           ReviewStage   @relation(fields: [stageId], references: [id])
+  evaluatorUserId String
+  decision        StageDecision
+  comments        String?
+  scoreOverall    Float?
+  scoreBreakdown  Json?
+  createdAt       DateTime      @default(now())
+
+  @@unique([ideaId, stageId, evaluatorUserId])
+}
+
 enum Role {
   SUBMITTER
   EVALUATOR
@@ -81,4 +140,15 @@ enum IdeaStatus {
   UNDER_REVIEW
   ACCEPTED
   REJECTED
+}
+
+enum DraftStatus {
+  DRAFT
+  SUBMITTED_FROM_DRAFT
+}
+
+enum StageDecision {
+  ADVANCE
+  HOLD
+  REJECT
 }

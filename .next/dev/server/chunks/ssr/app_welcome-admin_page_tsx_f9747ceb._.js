@@ -18,9 +18,14 @@ function WelcomeAdminPage() {
     const [displayName, setDisplayName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [accessToken, setAccessToken] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [ideas, setIdeas] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [allIdeas, setAllIdeas] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [loadingIdeas, setLoadingIdeas] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [evaluationComment, setEvaluationComment] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({});
+    const [evaluationDecision, setEvaluationDecision] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({});
     const [evaluatingId, setEvaluatingId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [savingDraftId, setSavingDraftId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [reviewDrafts, setReviewDrafts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [loadingDrafts, setLoadingDrafts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [success, setSuccess] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -31,7 +36,8 @@ function WelcomeAdminPage() {
     }, [
         router
     ]);
-    const loadIdeas = async (token)=>{
+    // Fetch helpers that return data without setting state
+    const fetchIdeas = async (token)=>{
         setLoadingIdeas(true);
         setError(null);
         try {
@@ -43,24 +49,65 @@ function WelcomeAdminPage() {
             });
             if (!res.ok) {
                 setError(`Failed to load ideas (${res.status}). Please try again later.`);
-                return;
+                return [];
             }
-            const data = await res.json();
-            setIdeas(data || []);
+            return await res.json() || [];
         } catch (err) {
             setError(err?.message ?? "Failed to load ideas");
+            return [];
         } finally{
             setLoadingIdeas(false);
         }
     };
-    const handleEvaluate = async (ideaId, decision)=>{
+    const fetchReviewDrafts = async (token)=>{
+        setLoadingDrafts(true);
+        try {
+            const res = await fetch("http://localhost:3000/api/drafts", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            return (data || []).filter((d)=>d.category === "review-draft");
+        } catch  {
+            return [];
+        } finally{
+            setLoadingDrafts(false);
+        }
+    };
+    // Apply both lists together: enrich drafts with idea data, filter queue
+    const applyLists = (fetchedIdeas, fetchedDrafts)=>{
+        setAllIdeas(fetchedIdeas);
+        const draftedIdeaIds = new Set(fetchedDrafts.map((d)=>d.dynamicFieldValues?.ideaId).filter(Boolean));
+        setIdeas(fetchedIdeas.filter((i)=>!draftedIdeaIds.has(i.id)));
+        const enriched = fetchedDrafts.map((d)=>({
+                ...d,
+                _idea: fetchedIdeas.find((i)=>i.id === d.dynamicFieldValues?.ideaId)
+            }));
+        setReviewDrafts(enriched);
+    };
+    const reloadAll = async ()=>{
+        if (!accessToken) return;
+        const [fetchedIdeas, fetchedDrafts] = await Promise.all([
+            fetchIdeas(accessToken),
+            fetchReviewDrafts(accessToken)
+        ]);
+        applyLists(fetchedIdeas, fetchedDrafts);
+    };
+    const handleEvaluate = async (ideaId)=>{
         if (!accessToken) {
             router.replace("/login");
             return;
         }
         const comment = evaluationComment[ideaId]?.trim();
+        const decision = evaluationDecision[ideaId];
         if (!comment) {
             setError("Please enter a comment before submitting a decision.");
+            return;
+        }
+        if (!decision) {
+            setError("Please select Accept or Reject before submitting.");
             return;
         }
         setError(null);
@@ -81,8 +128,7 @@ function WelcomeAdminPage() {
             });
             if (!res.ok) {
                 const body = await res.json().catch(()=>null);
-                const msg = body?.error?.message || `Failed to submit evaluation (${res.status})`;
-                throw new Error(msg);
+                throw new Error(body?.error?.message || `Failed to submit evaluation (${res.status})`);
             }
             const result = await res.json().catch(()=>null);
             setIdeas((prev)=>prev.map((idea)=>{
@@ -102,11 +148,92 @@ function WelcomeAdminPage() {
                     ...prev,
                     [ideaId]: ""
                 }));
+            setEvaluationDecision((prev)=>{
+                const next = {
+                    ...prev
+                };
+                delete next[ideaId];
+                return next;
+            });
             setSuccess(`Decision saved as ${decision.toLowerCase()}.`);
         } catch (err) {
             setError(err?.message ?? "Failed to submit evaluation");
         } finally{
             setEvaluatingId(null);
+        }
+    };
+    const handleSaveReviewDraft = async (ideaId)=>{
+        if (!accessToken) {
+            router.replace("/login");
+            return;
+        }
+        const comment = evaluationComment[ideaId]?.trim();
+        const decision = evaluationDecision[ideaId];
+        if (!comment) {
+            setError("Please enter a comment before saving a draft.");
+            return;
+        }
+        setError(null);
+        setSuccess(null);
+        setSavingDraftId(ideaId);
+        try {
+            // Check if a review draft for this idea already exists
+            const existing = reviewDrafts.find((d)=>d.dynamicFieldValues?.ideaId === ideaId);
+            const idea = ideas.find((i)=>i.id === ideaId);
+            if (existing) {
+                // Update the existing draft
+                const res = await fetch(`http://localhost:3000/api/drafts/${encodeURIComponent(existing.id)}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        title: existing.title,
+                        description: comment,
+                        category: "review-draft",
+                        dynamicFieldValues: {
+                            ideaId,
+                            decision: decision ?? existing.dynamicFieldValues?.decision ?? "",
+                            ideaTitle: idea?.title ?? ""
+                        }
+                    })
+                });
+                if (!res.ok) {
+                    const body = await res.json().catch(()=>null);
+                    throw new Error(body?.error?.message || `Failed to update review draft (${res.status})`);
+                }
+            } else {
+                // Create a new draft
+                const res = await fetch("http://localhost:3000/api/drafts", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        title: `review-draft:${ideaId}`,
+                        description: comment,
+                        category: "review-draft",
+                        dynamicFieldValues: {
+                            ideaId,
+                            decision: decision ?? "",
+                            ideaTitle: idea?.title ?? ""
+                        }
+                    })
+                });
+                if (!res.ok) {
+                    const body = await res.json().catch(()=>null);
+                    throw new Error(body?.error?.message || `Failed to save review draft (${res.status})`);
+                }
+            }
+            // Reload everything — idea disappears from queue, appears in drafts
+            await reloadAll();
+            setSuccess("Review draft saved.");
+        } catch (err) {
+            setError(err?.message ?? "Failed to save review draft");
+        } finally{
+            setSavingDraftId(null);
         }
     };
     const renderStatus = (status)=>{
@@ -135,20 +262,20 @@ function WelcomeAdminPage() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 197,
+                        lineNumber: 308,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "You are signed in with evaluator privileges and can review ideas."
                     }, void 0, false, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 198,
+                        lineNumber: 309,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/welcome-admin/page.tsx",
-                lineNumber: 196,
+                lineNumber: 307,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -160,7 +287,7 @@ function WelcomeAdminPage() {
                         children: "Idea review queue"
                     }, void 0, false, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 202,
+                        lineNumber: 313,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -172,7 +299,7 @@ function WelcomeAdminPage() {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 204,
+                        lineNumber: 315,
                         columnNumber: 11
                     }, this),
                     success && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -184,20 +311,20 @@ function WelcomeAdminPage() {
                         children: success
                     }, void 0, false, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 209,
+                        lineNumber: 320,
                         columnNumber: 11
                     }, this),
                     loadingIdeas ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "Loading ideas..."
                     }, void 0, false, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 214,
+                        lineNumber: 325,
                         columnNumber: 11
                     }, this) : ideas.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "There are no ideas to review yet."
                     }, void 0, false, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 216,
+                        lineNumber: 327,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "idea-table",
@@ -209,41 +336,41 @@ function WelcomeAdminPage() {
                                         children: "Title & description"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                        lineNumber: 220,
+                                        lineNumber: 331,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Category"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                        lineNumber: 221,
+                                        lineNumber: 332,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Status"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                        lineNumber: 222,
+                                        lineNumber: 333,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Attachments"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                        lineNumber: 223,
+                                        lineNumber: 334,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "Review & comment"
                                     }, void 0, false, {
                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                        lineNumber: 224,
+                                        lineNumber: 335,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                lineNumber: 219,
+                                lineNumber: 330,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -260,20 +387,20 @@ function WelcomeAdminPage() {
                                                         children: idea.title
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                                        lineNumber: 238,
+                                                        lineNumber: 349,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                         children: idea.description
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                                        lineNumber: 239,
+                                                        lineNumber: 350,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                                lineNumber: 237,
+                                                lineNumber: 348,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -281,12 +408,12 @@ function WelcomeAdminPage() {
                                                     children: idea.category
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                    lineNumber: 242,
+                                                    lineNumber: 353,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                                lineNumber: 241,
+                                                lineNumber: 352,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -294,12 +421,12 @@ function WelcomeAdminPage() {
                                                     children: renderStatus(idea.status)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                    lineNumber: 245,
+                                                    lineNumber: 356,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                                lineNumber: 244,
+                                                lineNumber: 355,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -311,23 +438,23 @@ function WelcomeAdminPage() {
                                                             children: att.filename
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/welcome-admin/page.tsx",
-                                                            lineNumber: 251,
+                                                            lineNumber: 362,
                                                             columnNumber: 29
                                                         }, this)
                                                     }, att.id, false, {
                                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                                        lineNumber: 250,
+                                                        lineNumber: 361,
                                                         columnNumber: 27
                                                     }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     children: "-"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                    lineNumber: 257,
+                                                    lineNumber: 368,
                                                     columnNumber: 25
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                                lineNumber: 247,
+                                                lineNumber: 358,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -340,7 +467,7 @@ function WelcomeAdminPage() {
                                                             children: "Decision recorded."
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/welcome-admin/page.tsx",
-                                                            lineNumber: 263,
+                                                            lineNumber: 374,
                                                             columnNumber: 27
                                                         }, this),
                                                         latestComment && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -355,7 +482,7 @@ function WelcomeAdminPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/welcome-admin/page.tsx",
-                                                            lineNumber: 265,
+                                                            lineNumber: 376,
                                                             columnNumber: 29
                                                         }, this)
                                                     ]
@@ -372,7 +499,7 @@ function WelcomeAdminPage() {
                                                                     children: "Evaluation comment"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                                    lineNumber: 279,
+                                                                    lineNumber: 390,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -385,47 +512,118 @@ function WelcomeAdminPage() {
                                                                     rows: 3
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                                    lineNumber: 280,
+                                                                    lineNumber: 391,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/welcome-admin/page.tsx",
-                                                            lineNumber: 278,
+                                                            lineNumber: 389,
+                                                            columnNumber: 27
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            style: {
+                                                                display: "flex",
+                                                                gap: "1rem",
+                                                                marginTop: "0.4rem"
+                                                            },
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                                    style: {
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        gap: "0.3rem",
+                                                                        cursor: "pointer"
+                                                                    },
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                                            type: "radio",
+                                                                            name: `decision-${idea.id}`,
+                                                                            value: "ACCEPTED",
+                                                                            checked: evaluationDecision[idea.id] === "ACCEPTED",
+                                                                            onChange: ()=>setEvaluationDecision((prev)=>({
+                                                                                        ...prev,
+                                                                                        [idea.id]: "ACCEPTED"
+                                                                                    }))
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/app/welcome-admin/page.tsx",
+                                                                            lineNumber: 405,
+                                                                            columnNumber: 31
+                                                                        }, this),
+                                                                        "Accept"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/app/welcome-admin/page.tsx",
+                                                                    lineNumber: 404,
+                                                                    columnNumber: 29
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                                    style: {
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        gap: "0.3rem",
+                                                                        cursor: "pointer"
+                                                                    },
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                                            type: "radio",
+                                                                            name: `decision-${idea.id}`,
+                                                                            value: "REJECTED",
+                                                                            checked: evaluationDecision[idea.id] === "REJECTED",
+                                                                            onChange: ()=>setEvaluationDecision((prev)=>({
+                                                                                        ...prev,
+                                                                                        [idea.id]: "REJECTED"
+                                                                                    }))
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/app/welcome-admin/page.tsx",
+                                                                            lineNumber: 417,
+                                                                            columnNumber: 31
+                                                                        }, this),
+                                                                        "Reject"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/app/welcome-admin/page.tsx",
+                                                                    lineNumber: 416,
+                                                                    columnNumber: 29
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/welcome-admin/page.tsx",
+                                                            lineNumber: 403,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "idea-form-actions",
                                                             style: {
-                                                                marginTop: "0.25rem"
+                                                                marginTop: "0.4rem"
                                                             },
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                     type: "button",
-                                                                    className: "btn",
-                                                                    disabled: evaluatingId === idea.id,
-                                                                    onClick: ()=>handleEvaluate(idea.id, "ACCEPTED"),
-                                                                    children: evaluatingId === idea.id ? "Saving..." : "Accept"
+                                                                    className: "btn secondary",
+                                                                    disabled: savingDraftId === idea.id,
+                                                                    onClick: ()=>void handleSaveReviewDraft(idea.id),
+                                                                    children: savingDraftId === idea.id ? "Saving draft..." : "Save as draft"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                                    lineNumber: 293,
+                                                                    lineNumber: 430,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                     type: "button",
-                                                                    className: "btn secondary",
+                                                                    className: "btn",
                                                                     disabled: evaluatingId === idea.id,
-                                                                    onClick: ()=>handleEvaluate(idea.id, "REJECTED"),
-                                                                    children: evaluatingId === idea.id ? "Saving..." : "Reject"
+                                                                    onClick: ()=>void handleEvaluate(idea.id),
+                                                                    children: evaluatingId === idea.id ? "Saving..." : "Submit"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/welcome-admin/page.tsx",
-                                                                    lineNumber: 301,
+                                                                    lineNumber: 438,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/welcome-admin/page.tsx",
-                                                            lineNumber: 292,
+                                                            lineNumber: 429,
                                                             columnNumber: 27
                                                         }, this),
                                                         latestComment && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -440,44 +638,281 @@ function WelcomeAdminPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/welcome-admin/page.tsx",
-                                                            lineNumber: 311,
+                                                            lineNumber: 448,
                                                             columnNumber: 29
                                                         }, this)
                                                     ]
                                                 }, void 0, true)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                                lineNumber: 260,
+                                                lineNumber: 371,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, idea.id, true, {
                                         fileName: "[project]/app/welcome-admin/page.tsx",
-                                        lineNumber: 236,
+                                        lineNumber: 347,
                                         columnNumber: 19
                                     }, this);
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/app/welcome-admin/page.tsx",
-                                lineNumber: 226,
+                                lineNumber: 337,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/welcome-admin/page.tsx",
-                        lineNumber: 218,
+                        lineNumber: 329,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/welcome-admin/page.tsx",
-                lineNumber: 201,
+                lineNumber: 312,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                className: "card",
+                "aria-labelledby": "review-drafts-heading",
+                style: {
+                    marginTop: "1.5rem"
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                        id: "review-drafts-heading",
+                        children: "My review drafts"
+                    }, void 0, false, {
+                        fileName: "[project]/app/welcome-admin/page.tsx",
+                        lineNumber: 470,
+                        columnNumber: 9
+                    }, this),
+                    loadingDrafts ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: "Loading review drafts…"
+                    }, void 0, false, {
+                        fileName: "[project]/app/welcome-admin/page.tsx",
+                        lineNumber: 472,
+                        columnNumber: 11
+                    }, this) : reviewDrafts.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: "No saved review drafts."
+                    }, void 0, false, {
+                        fileName: "[project]/app/welcome-admin/page.tsx",
+                        lineNumber: 474,
+                        columnNumber: 11
+                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "idea-table",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "idea-table-header idea-table-header--admin",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Title & description"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                        lineNumber: 478,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Category"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                        lineNumber: 479,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Status"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                        lineNumber: 480,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Attachments"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                        lineNumber: 481,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Draft comment & decision"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                        lineNumber: 482,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                lineNumber: 477,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                className: "idea-list",
+                                children: reviewDrafts.map((rd)=>{
+                                    const idea = rd._idea;
+                                    const decisionLabel = rd.dynamicFieldValues?.decision === "ACCEPTED" ? "Accept" : rd.dynamicFieldValues?.decision === "REJECTED" ? "Reject" : "No decision yet";
+                                    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                        className: "idea-item idea-item--admin",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                        children: idea?.title ?? rd.dynamicFieldValues?.ideaTitle ?? "Unknown idea"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                                        lineNumber: 496,
+                                                        columnNumber: 23
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        children: idea?.description ?? "—"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                                        lineNumber: 497,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                                lineNumber: 495,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: idea?.category ?? "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/welcome-admin/page.tsx",
+                                                    lineNumber: 500,
+                                                    columnNumber: 23
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                                lineNumber: 499,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    children: renderStatus(idea?.status)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/welcome-admin/page.tsx",
+                                                    lineNumber: 503,
+                                                    columnNumber: 23
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                                lineNumber: 502,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                children: idea?.attachments && idea.attachments.length > 0 ? idea.attachments.map((att)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                                                            href: att.url,
+                                                            target: "_blank",
+                                                            rel: "noopener noreferrer",
+                                                            children: att.filename
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/welcome-admin/page.tsx",
+                                                            lineNumber: 509,
+                                                            columnNumber: 29
+                                                        }, this)
+                                                    }, att.id, false, {
+                                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                                        lineNumber: 508,
+                                                        columnNumber: 27
+                                                    }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    children: "-"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/welcome-admin/page.tsx",
+                                                    lineNumber: 515,
+                                                    columnNumber: 25
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                                lineNumber: 505,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        style: {
+                                                            margin: 0,
+                                                            fontSize: "0.85rem",
+                                                            color: "#374151"
+                                                        },
+                                                        children: [
+                                                            rd.description?.slice(0, 150),
+                                                            rd.description && rd.description.length > 150 ? "…" : ""
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                                        lineNumber: 519,
+                                                        columnNumber: 23
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
+                                                        style: {
+                                                            color: "#6b7280"
+                                                        },
+                                                        children: [
+                                                            "Decision: ",
+                                                            decisionLabel
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                                        lineNumber: 522,
+                                                        columnNumber: 23
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        style: {
+                                                            marginTop: "0.5rem"
+                                                        },
+                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                            type: "button",
+                                                            className: "btn secondary",
+                                                            onClick: ()=>router.push(`/welcome-admin/draft/${encodeURIComponent(rd.id)}`),
+                                                            children: "Edit draft"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/welcome-admin/page.tsx",
+                                                            lineNumber: 524,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                                        lineNumber: 523,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                                lineNumber: 518,
+                                                columnNumber: 21
+                                            }, this)
+                                        ]
+                                    }, rd.id, true, {
+                                        fileName: "[project]/app/welcome-admin/page.tsx",
+                                        lineNumber: 494,
+                                        columnNumber: 19
+                                    }, this);
+                                })
+                            }, void 0, false, {
+                                fileName: "[project]/app/welcome-admin/page.tsx",
+                                lineNumber: 484,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/welcome-admin/page.tsx",
+                        lineNumber: 476,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/welcome-admin/page.tsx",
+                lineNumber: 469,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/welcome-admin/page.tsx",
-        lineNumber: 195,
+        lineNumber: 306,
         columnNumber: 5
     }, this);
 }
