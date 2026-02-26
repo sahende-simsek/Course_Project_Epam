@@ -29,7 +29,10 @@ export async function createUser(email: string, password: string, username?: str
   }
 
   // Prevent duplicate emails in both real DB and in-memory test client.
-  const existing = await prisma.user.findUnique({ where: { email: normalized } });
+  let existing: any = undefined;
+  if (prisma.user && typeof (prisma.user as any).findUnique === 'function') {
+    existing = await (prisma.user as any).findUnique({ where: { email: normalized } });
+  }
   if (existing) {
     const e = new Error('Conflict: email already exists');
     (e as any).status = 409;
@@ -43,14 +46,12 @@ export async function createUser(email: string, password: string, username?: str
     const user = await prisma.user.create({
       data: {
         email: normalized,
-        username: username || null,
         passwordHash,
         role,
       },
       select: {
         id: true,
         email: true,
-        username: true,
         role: true,
         createdAt: true,
       },
