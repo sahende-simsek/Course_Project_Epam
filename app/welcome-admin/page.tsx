@@ -147,15 +147,26 @@ export default function WelcomeAdminPage() {
         throw new Error(msg);
       }
 
+      const result = (await res.json().catch(() => null)) as
+        | { ideaId: string; evaluation: { id: string; comments: string; decision: string; createdAt?: string } }
+        | null;
+
       setIdeas((prev) =>
-        prev.map((idea) =>
-          idea.id === ideaId
-            ? {
-                ...idea,
-                status: decision,
-              }
-            : idea
-        )
+        prev.map((idea) => {
+          if (idea.id !== ideaId) return idea;
+
+          const existingEvaluations = idea.evaluations ?? [];
+          const nextEvaluations =
+            result && result.evaluation
+              ? [...existingEvaluations, result.evaluation]
+              : existingEvaluations;
+
+          return {
+            ...idea,
+            status: decision,
+            evaluations: nextEvaluations,
+          };
+        })
       );
       setEvaluationComment((prev) => ({ ...prev, [ideaId]: "" }));
       setSuccess(`Decision saved as ${decision.toLowerCase()}.`);

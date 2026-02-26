@@ -106,7 +106,7 @@ function LoginForm() {
                 if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
                 ;
             }
-            if (role === 'EVALUATOR') {
+            if (role === 'EVALUATOR' || role === 'ADMIN') {
                 router.push('/welcome-admin');
             } else {
                 router.push('/welcome');

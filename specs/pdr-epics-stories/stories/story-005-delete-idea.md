@@ -34,6 +34,12 @@ As an idea owner or admin I want to delete an idea so that inappropriate or outd
 - Implement `DELETE /api/ideas/:id` performing soft-delete (status=deleted).
 - Provide an admin-only purge endpoint to permanently remove records if required by policy.
 
+## Main Flow
+1. Client (owner or admin) initiates delete by calling `DELETE /api/ideas/:id`.
+2. Server verifies permissions and performs a soft-delete (mark `status=deleted`).
+3. Server returns 204 No Content on success and writes an audit log entry.
+4. If admin requests purge, admin calls `POST /api/admin/ideas/:id/purge`; server permanently removes records per policy and returns 200.
+
 ## 5. Priority
 Low
 

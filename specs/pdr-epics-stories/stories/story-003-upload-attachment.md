@@ -34,6 +34,13 @@ As an authenticated user I want to upload attachments via pre-signed URLs so tha
 - Implement `POST /api/uploads/sign` which returns a time-limited pre-signed URL and `attachmentId`.
 - Server validates filename, content-type and enforces max size and allowed mime types.
 
+## Main Flow
+1. Client requests a signed upload URL via `POST /api/uploads/sign` with filename and content-type.
+2. Server validates request and returns a time-limited pre-signed URL and an `attachmentId`.
+3. Client uploads file directly to object storage using the pre-signed URL.
+4. Client informs the server of upload completion (or includes `attachmentId` when creating resources).
+5. Server verifies the upload, marks the attachment as available, and associates it when requested.
+
 ## 5. Priority
 Medium
 

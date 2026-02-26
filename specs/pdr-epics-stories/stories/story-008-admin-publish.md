@@ -34,6 +34,13 @@ As an admin I want to moderate and publish ideas so that curated content appears
 - Provide admin endpoints for moderation queue, changing idea status, and adding editorial notes.
 - Publishing sets idea `status=published` and creates an audit log entry with admin metadata.
 
+## Main Flow
+1. Admin views the moderation queue via `GET /api/admin/ideas?status=flagged`.
+2. Admin reviews an idea and selects the publish action.
+3. Client issues `POST /api/admin/ideas/:id/publish` with any editorial notes.
+4. Server verifies admin privileges, sets `status=published`, creates an audit log entry that includes admin metadata and the provided editorial note, and returns 200 including the recorded editorial note in the response payload.
+5. Client displays a publish confirmation and shows the admin's editorial note beneath the action (not just a generic "recorded" label).
+
 ## 5. Priority
 Low
 

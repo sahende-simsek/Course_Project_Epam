@@ -39,6 +39,14 @@ As an authenticated user I want a secure session lifecycle (login + refresh) so 
 - Login creates a refresh DB record and sets an HttpOnly `refresh` cookie containing a `tokenId` (opaque UUID).
 - Refresh rotates the DB row transactionally and issues a new access token and rotated cookie.
 
+## Main Flow
+1. Client submits credentials to `POST /api/auth/login`.
+2. Server validates credentials, creates a refresh DB record, issues an access token, and sets an HttpOnly `refresh` cookie containing `tokenId`.
+3. Client stores access token and uses it for authenticated requests.
+4. When access token expires, client calls `POST /api/auth/refresh` with the `refresh` cookie.
+5. Server rotates the refresh record transactionally and returns a new access token and updated `refresh` cookie.
+6. Client replaces stored tokens and continues; if a replay is detected, server returns 401 and logs an AuthEvent.
+
 ## 5. Priority
 High
 

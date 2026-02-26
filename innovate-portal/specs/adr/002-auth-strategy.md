@@ -1,7 +1,7 @@
 # ADR 002 — Auth Strategy: JWT vs Session & Token Handling
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 

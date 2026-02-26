@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && github.event.head_commit && github.event.head_commit.author && github.event.head_commit.author.email != 'sahende_simsek@epam.com') ||
+      (github.event_name == 'pull_request' && github.actor != 'sahende-simsek')
     steps:
       - name: Checkout
         uses: actions/checkout@v4

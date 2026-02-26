@@ -34,6 +34,13 @@ As the idea owner I want to edit my idea so that details remain accurate and att
 - Implement `PUT /api/ideas/:id` with ownership and permission checks.
 - Handle add/remove attachments via attachment references and signed upload flow.
 
+## Main Flow
+1. Client displays an edit form populated with existing idea data.
+2. User updates fields and adds/removes attachment references as needed.
+3. Client uploads any new attachments via signed URLs and includes their references in the payload.
+4. Client sends `PUT /api/ideas/:id` with updated data and attachment references.
+5. Server verifies ownership, validates input, updates the idea record and attachment links, and returns 200.
+
 ## 5. Priority
 Medium
 

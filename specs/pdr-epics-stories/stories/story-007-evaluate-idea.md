@@ -34,6 +34,12 @@ As a reviewer I want to submit an evaluation so that ideas can be scored and ran
 - Implement `POST /api/ideas/:id/evaluations` that records score and optional comment; update aggregated metrics.
 - Decide duplicate evaluation policy (update existing vs reject) and document it.
 
+## Main Flow
+1. Reviewer opens an idea and fills evaluation score and optional comment on the client.
+2. Client sends `POST /api/ideas/:id/evaluations` with the evaluation payload.
+3. Server verifies reviewer permissions, stores the evaluation, and updates aggregated metrics.
+4. Server returns 201 Created and the updated aggregation values.
+
 ## 5. Priority
 Medium
 

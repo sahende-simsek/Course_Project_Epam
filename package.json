@@ -6,6 +6,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --coverage",
+    "dev": "npm run dev:server",
     "test:unit": "jest --testPathPattern=tests/unit --runInBand",
     "test:integration": "jest --testPathPattern=tests/integration",
     "test:contract": "jest --testPathPattern=tests/contract",

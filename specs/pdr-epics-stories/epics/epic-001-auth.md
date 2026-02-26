@@ -84,12 +84,6 @@ Out of scope:
 - ADR: `innovate-portal/specs/adr/002-auth-strategy.md`
 - Refresh implementation: `src/auth/domain/refreshService.ts`
 
-## 14. Definition of Done (Epic level)
-- [ ] All child stories implemented and accepted
-- [ ] Unit and integration tests added and passing for auth flows
-- [ ] E2E tests covering login→refresh→logout passing
-- [ ] Security review completed and any critical findings addressed
-- [ ] Documentation (docs/auth) updated with cookie and rotation details
 
 ---
 

@@ -34,6 +34,12 @@ As a user I want to browse and view idea details so that I can discover and insp
 - Implement `GET /api/ideas` with cursor or offset pagination, filters for tag and status.
 - Implement `GET /api/ideas/:id` returning full details and attachment download URLs when authorized.
 
+## Main Flow
+1. Client requests a paginated list via `GET /api/ideas?limit=<n>&cursor=<x>` or filters.
+2. Server returns up to `n` idea summaries and a cursor for the next page.
+3. User selects an idea and client requests `GET /api/ideas/:id` for details.
+4. Server returns full idea details, attachment metadata, and any authorized download URLs.
+
 ## 5. Priority
 Medium
 

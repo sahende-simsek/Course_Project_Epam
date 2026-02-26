@@ -130,7 +130,7 @@ function LoginForm() {
                     }
                 }
             }
-            if (role === 'EVALUATOR') {
+            if (role === 'EVALUATOR' || role === 'ADMIN') {
                 router.push('/welcome-admin');
             } else {
                 router.push('/welcome');

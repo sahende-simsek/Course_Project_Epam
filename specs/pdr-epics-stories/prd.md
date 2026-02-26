@@ -91,18 +91,10 @@ Persona 1: Employee Innovator
 - Goals: Quickly submit ideas with attachments; track status
 - Pain Points: Loss of attachments, unclear status
 
-Persona 2: Reviewer
+Persona 2: Reviewer/Admin
 - Role: Peer reviewer or manager
 - Goals: Evaluate ideas, provide feedback
 
-Persona 3: Admin
-- Role: Moderator
-- Goals: Moderate and publish ideas, manage abuse
-
-Expanded persona requirements:
-- Contributors: need a simple form, clear upload progress, and receive confirmation with idea ID and link.
-- Reviewers: need a queue, history of their reviews, and ability to change evaluations within policy limits.
-- Admins: need bulk moderation tools (filter, batch publish/archive), audit logs, and ability to permanently purge if required.
 
 ---
 
@@ -380,10 +372,5 @@ Expanded measurement plan:
 | Large file uploads cause timeouts | Medium | Medium | Enforce size limits and use resumable uploads for >10MB |
 | Data leak through misconfigured S3 ACLs | Low | High | Enforce private ACLs by default; automated checks in CI |
 
-## 22. Next Steps / Plan
 
-1. Triage and convert PRD items into epics/stories (create idea/evaluation/admin epics) and prioritize for MVP sprints.
-2. Implement `T1` from `STORY-001` (login should persist refresh token and set real cookie) and add corresponding integration test.
-3. Add integration tests for upload and refresh rotation; run them in CI against a staging environment with real storage and DB.
-4. Schedule security review and a pilot release to a small user group; gather feedback and iterate before full rollout.
 
