@@ -97,9 +97,6 @@ function DraftsPage() {
             setError(err?.message ?? "Failed to submit draft");
         }
     };
-    const handleResume = (id)=>{
-        router.push(`/ideas/new?draftId=${encodeURIComponent(id)}`);
-    };
     const handleRemoveAttachment = async (attachmentId)=>{
         if (!accessToken) return;
         setError(null);
@@ -195,12 +192,12 @@ function DraftsPage() {
                         children: "Back to home"
                     }, void 0, false, {
                         fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                        lineNumber: 197,
+                        lineNumber: 193,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 196,
+                    lineNumber: 192,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -208,14 +205,14 @@ function DraftsPage() {
                     children: "My Drafts"
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 205,
+                    lineNumber: 201,
                     columnNumber: 9
                 }, this),
                 loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                     children: "Loading drafts…"
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 206,
+                    lineNumber: 202,
                     columnNumber: 21
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -227,14 +224,14 @@ function DraftsPage() {
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 208,
+                    lineNumber: 204,
                     columnNumber: 11
                 }, this),
                 !loading && drafts.length === 0 && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                     children: "You have no drafts yet."
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 212,
+                    lineNumber: 208,
                     columnNumber: 55
                 }, this),
                 !loading && drafts.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -248,21 +245,21 @@ function DraftsPage() {
                                             children: draft.title
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 218,
+                                            lineNumber: 214,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                             children: draft.description
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 219,
+                                            lineNumber: 215,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
                                             children: draft.category
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 220,
+                                            lineNumber: 216,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -274,7 +271,7 @@ function DraftsPage() {
                                                     children: "Attachments:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 222,
+                                                    lineNumber: 218,
                                                     columnNumber: 21
                                                 }, this),
                                                 draft.attachments && draft.attachments.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -287,7 +284,7 @@ function DraftsPage() {
                                                                     children: att.filename
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                                    lineNumber: 227,
+                                                                    lineNumber: 223,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 " ",
@@ -301,18 +298,18 @@ function DraftsPage() {
                                                                     children: "Remove"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                                    lineNumber: 230,
+                                                                    lineNumber: 226,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             ]
                                                         }, att.id, true, {
                                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                            lineNumber: 226,
+                                                            lineNumber: 222,
                                                             columnNumber: 27
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 224,
+                                                    lineNumber: 220,
                                                     columnNumber: 23
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     style: {
@@ -321,7 +318,7 @@ function DraftsPage() {
                                                     children: "No attachments."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 242,
+                                                    lineNumber: 238,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -340,24 +337,24 @@ function DraftsPage() {
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                        lineNumber: 245,
+                                                        lineNumber: 241,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 244,
+                                                    lineNumber: 240,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 221,
+                                            lineNumber: 217,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                    lineNumber: 217,
+                                    lineNumber: 213,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -373,7 +370,7 @@ function DraftsPage() {
                                             children: "Submit"
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 260,
+                                            lineNumber: 256,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -383,35 +380,35 @@ function DraftsPage() {
                                             children: "Delete"
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 263,
+                                            lineNumber: 259,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                    lineNumber: 259,
+                                    lineNumber: 255,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, draft.id, true, {
                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                            lineNumber: 216,
+                            lineNumber: 212,
                             columnNumber: 15
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 214,
+                    lineNumber: 210,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-            lineNumber: 195,
+            lineNumber: 191,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-        lineNumber: 194,
+        lineNumber: 190,
         columnNumber: 5
     }, this);
 }

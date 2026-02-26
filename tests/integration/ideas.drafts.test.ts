@@ -96,4 +96,68 @@ describe('integration: drafts endpoints (adapter + domain)', () => {
     );
     expect(deleteRes.status).toBe(204);
   });
+
+  it('adapter validation and error branches', async () => {
+    const { GET, PUT, DELETE, POST_SUBMIT } = require('../../src/auth/adapters/drafts.route');
+    const userId = 'edge-user';
+    const token = makeAuthToken(userId);
+
+    // GET with non-existent id should return 404
+    const getMissing = await GET(makeRequest('GET', '/api/drafts?id=nope', undefined, token));
+    expect(getMissing.status).toBe(404);
+
+    // PUT missing id -> 400
+    const putNoId = await PUT(makeRequest('PUT', '/api/drafts', { title: 'x' }, token));
+    expect(putNoId.status).toBe(400);
+
+    // DELETE missing id -> 400
+    const deleteNoId = await DELETE(makeRequest('DELETE', '/api/drafts', undefined, token));
+    expect(deleteNoId.status).toBe(400);
+
+    // POST_SUBMIT missing draftId -> 400
+    const submitNoId = await POST_SUBMIT(makeRequest('POST', '/api/drafts/submit', {}, token));
+    expect(submitNoId.status).toBe(400);
+
+    // Invalid token should be treated as unauthorized
+    const badTokenReq = makeRequest('GET', '/api/drafts', undefined, 'bad.token.value');
+    const badRes = await GET(badTokenReq);
+    expect(badRes.status).toBe(401);
+  });
+
+  it('adapter surfaces domain errors for create and update', async () => {
+    // Re-load modules and mock draftService to throw
+    jest.resetModules();
+    process.env.TEST_USE_INMEMORY = '1';
+
+    const mockErrorCreate: any = new Error('create boom');
+    mockErrorCreate.status = 418;
+    mockErrorCreate.code = 'CRE';
+
+    const mockErrorUpdate: any = new Error('update boom');
+    mockErrorUpdate.status = 500;
+    mockErrorUpdate.code = 'UPD';
+
+    jest.doMock('../../src/auth/domain/draftService', () => ({
+      createDraft: async () => { throw mockErrorCreate; },
+      updateDraft: async () => { throw mockErrorUpdate; },
+    }));
+
+    const { POST, PUT } = require('../../src/auth/adapters/drafts.route');
+    const userId = 'mock-user';
+    const token = makeAuthToken(userId);
+
+    const resCreate = await POST(makeRequest('POST', '/api/drafts', { title: 't', description: 'd', category: 'c' }, token));
+    expect(resCreate.status).toBe(418);
+    const bodyCreate = await resCreate.json();
+    expect(bodyCreate.error.code).toBe('CRE');
+
+    const resUpdate = await PUT(makeRequest('PUT', '/api/drafts?id=some', { title: 'x' }, token));
+    expect(resUpdate.status).toBe(500);
+    const bodyUpdate = await resUpdate.json();
+    expect(bodyUpdate.error.code).toBe('UPD');
+
+    // cleanup mock
+    jest.resetModules();
+    process.env.TEST_USE_INMEMORY = '1';
+  });
 });
