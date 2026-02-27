@@ -69,18 +69,18 @@ description: "Implementation tasks for Advanced Idea Workflow Phases 2–7"
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Add unit tests for multi-attachment validation (per-file and per-idea limits, MIME whitelist) in `tests/unit/ideas.attachments.rules.test.ts`.
-- [ ] T023 [P] [US2] Add integration tests for multi-attachment upload, rejection of disallowed/oversized files, and delete/replace behaviors in `tests/integration/ideas.attachments.multiple.test.ts`.
-- [ ] T024 [P] [US2] Add E2E test: submitter creates/edit idea, uploads multiple files, sees list on idea detail, and evaluator opens them in `tests/e2e/frontend/ideas.attachments.flow.spec.ts`.
+- [x] T022 [P] [US2] Add unit tests for multi-attachment validation (per-file and per-idea limits, MIME whitelist) in `tests/unit/ideas.attachments.rules.test.ts`.
+- [x] T023 [P] [US2] Add integration tests for multi-attachment upload, rejection of disallowed/oversized files, and delete/replace behaviors in `tests/integration/ideas.attachments.multiple.test.ts`.
+ 
 
 ### Implementation for User Story 2
 
-- [ ] T025 [P] [US2] Extend `Attachment` Prisma model and related queries for multiple files and metadata in `prisma/schema.prisma` and regenerate client.
-- [ ] T026 [P] [US2] Implement attachment domain rules for limits and MIME validation in `src/auth/domain/attachmentService.ts`.
-- [ ] T027 [US2] Implement multi-attachment upload and delete endpoints for ideas in `src/auth/adapters/attachments.route.ts`.
-- [ ] T028 [US2] Update idea detail views to display attachments for submitters and evaluators in `src/frontend/app/ideas/[id]/page.tsx`.
-- [ ] T029 [US2] Implement frontend upload UI for multiple files with error messaging in `src/frontend/components/IdeaAttachmentsUploader.tsx`.
-- [ ] T030 [US2] Ensure logging for attachment upload/rejection events in `src/auth/domain/attachmentService.ts`.
+- [x] T025 [P] [US2] Extend `Attachment` Prisma model and related queries for multiple files and metadata in `prisma/schema.prisma` and regenerate client.
+- [x] T026 [P] [US2] Implement attachment domain rules for limits and MIME validation in `src/auth/domain/attachmentService.ts`.
+- [x] T027 [US2] Implement multi-attachment upload and delete endpoints for ideas in `src/auth/adapters/attachments.route.ts`.
+- [x] T028 [US2] Update idea detail views to display attachments for submitters and evaluators in `src/frontend/app/ideas/[id]/page.tsx`.
+- [x] T029 [US2] Implement frontend upload UI for multiple files with error messaging in `src/frontend/components/IdeaAttachmentsUploader.tsx`.
+- [x] T030 [US2] Ensure logging for attachment upload/rejection events in `src/auth/domain/attachmentService.ts`.
 
 **Checkpoint**: US1 and US2 both work independently; multi-file attachments are fully supported.
 
@@ -101,12 +101,12 @@ description: "Implementation tasks for Advanced Idea Workflow Phases 2–7"
 
 ### Implementation for User Story 3
 
-- [ ] T035 [P] [US3] Implement `ReviewStage` Prisma model and `Idea.currentStageId` linkage in `prisma/schema.prisma` and regenerate client.
+- [x] T035 [P] [US3] Implement `ReviewStage` Prisma model and `Idea.currentStageId` linkage in `prisma/schema.prisma` and regenerate client.
 - [ ] T036 [P] [US3] Implement stage domain service for loading workflow, validating transitions, and applying exit rules in `src/auth/domain/stageService.ts`.
 - [ ] T037 [US3] Implement blind projection helper that returns stage-specific idea views without submitter identity for blind stages in `src/auth/domain/ideaViewProjection.ts`.
 - [ ] T038 [US3] Implement stage review creation endpoint (`POST /api/ideas/:id/stage-reviews`) in `src/auth/adapters/stageReviews.route.ts`.
 - [ ] T039 [US3] Implement idea advancement endpoint (`POST /api/ideas/:id/advance`) applying stage transitions and finalization rules in `src/auth/adapters/stageAdvance.route.ts`.
-- [ ] T040 [US3] Implement evaluator-facing queues filtered by stage and blind visibility in `src/frontend/app/welcome-admin/page.tsx` or a new `src/frontend/app/ideas/review/[stageId]/page.tsx`.
+- [x] T040 [US3] Implement evaluator-facing queues filtered by stage and blind visibility in `src/frontend/app/welcome-admin/page.tsx` or a new `src/frontend/app/ideas/review/[stageId]/page.tsx`.
 - [ ] T041 [US3] Add logging for stage changes and blind-stage access to support audit requirements in `src/auth/domain/stageService.ts`.
 
 **Checkpoint**: US1–US3 are functional; ideas can be drafted, attached, and reviewed through multi-stage (including blind) workflow.

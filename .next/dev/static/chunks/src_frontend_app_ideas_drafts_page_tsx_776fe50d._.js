@@ -21,7 +21,6 @@ function DraftsPage() {
     const [drafts, setDrafts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
-    const fileInputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "DraftsPage.useEffect": ()=>{
             const token = ("TURBOPACK compile-time truthy", 1) ? window.localStorage.getItem("accessToken") : "TURBOPACK unreachable";
@@ -124,55 +123,53 @@ function DraftsPage() {
             setError(err?.message ?? "Failed to delete attachment");
         }
     };
-    const handleAddAttachment = async (draftId, file)=>{
+    const handleAddAttachment = async (draftId, files)=>{
         if (!accessToken) return;
         setError(null);
-        // Check if the draft already has an attachment
-        const draft = drafts.find((d)=>d.id === draftId);
-        if (draft && draft.attachments && draft.attachments.length > 0) {
-            setError("This draft already has an attachment. Please remove it before adding a new one.");
-            return;
-        }
         try {
-            const contents = await new Promise((resolve, reject)=>{
-                const reader = new FileReader();
-                reader.onload = ()=>{
-                    const result = reader.result;
-                    if (typeof result === "string") {
-                        const base64 = result.includes(",") ? result.split(",")[1] : result;
-                        resolve(base64);
-                    } else {
-                        reject(new Error("Failed to read file"));
-                    }
-                };
-                reader.onerror = ()=>reject(reader.error || new Error("Failed to read file"));
-                reader.readAsDataURL(file);
-            });
-            const res = await fetch("http://localhost:3000/api/drafts/attach", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    draftId,
-                    filename: file.name,
-                    mimetype: file.type || "application/octet-stream",
-                    size: file.size,
-                    contentBase64: contents
-                })
-            });
-            if (!res.ok) {
-                const body = await res.json().catch(()=>null);
-                const msg = body?.error || body?.error?.message || `Failed to add attachment (${res.status})`;
-                throw new Error(msg);
+            const newAttachments = [];
+            for (const file of files){
+                const contents = await new Promise((resolve, reject)=>{
+                    const reader = new FileReader();
+                    reader.onload = ()=>{
+                        const result = reader.result;
+                        if (typeof result === "string") {
+                            const base64 = result.includes(",") ? result.split(",")[1] : result;
+                            resolve(base64);
+                        } else {
+                            reject(new Error("Failed to read file"));
+                        }
+                    };
+                    reader.onerror = ()=>reject(reader.error || new Error("Failed to read file"));
+                    reader.readAsDataURL(file);
+                });
+                const res = await fetch("http://localhost:3000/api/drafts/attach", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        draftId,
+                        filename: file.name,
+                        mimetype: file.type || "application/octet-stream",
+                        size: file.size,
+                        contentBase64: contents
+                    })
+                });
+                if (!res.ok) {
+                    const body = await res.json().catch(()=>null);
+                    const msg = body?.error || body?.error?.message || `Failed to add attachment (${res.status})`;
+                    throw new Error(msg);
+                }
+                const newAttachment = await res.json();
+                newAttachments.push(newAttachment);
             }
-            const newAttachment = await res.json();
             setDrafts((prev)=>prev.map((d)=>d.id === draftId ? {
                         ...d,
                         attachments: [
                             ...d.attachments || [],
-                            newAttachment
+                            ...newAttachments
                         ]
                     } : d));
         } catch (err) {
@@ -196,12 +193,12 @@ function DraftsPage() {
                         children: "Back to home"
                     }, void 0, false, {
                         fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                        lineNumber: 193,
+                        lineNumber: 191,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 192,
+                    lineNumber: 190,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -209,14 +206,14 @@ function DraftsPage() {
                     children: "My Drafts"
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 201,
+                    lineNumber: 199,
                     columnNumber: 9
                 }, this),
                 loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                     children: "Loading drafts…"
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 202,
+                    lineNumber: 200,
                     columnNumber: 21
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -228,14 +225,14 @@ function DraftsPage() {
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 204,
+                    lineNumber: 202,
                     columnNumber: 11
                 }, this),
                 !loading && drafts.length === 0 && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                     children: "You have no drafts yet."
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 208,
+                    lineNumber: 206,
                     columnNumber: 55
                 }, this),
                 !loading && drafts.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -249,21 +246,21 @@ function DraftsPage() {
                                             children: draft.title
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 214,
+                                            lineNumber: 212,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                             children: draft.description
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 215,
+                                            lineNumber: 213,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
                                             children: draft.category
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 216,
+                                            lineNumber: 214,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -275,7 +272,7 @@ function DraftsPage() {
                                                     children: "Attachments:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 218,
+                                                    lineNumber: 216,
                                                     columnNumber: 21
                                                 }, this),
                                                 draft.attachments && draft.attachments.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -288,7 +285,7 @@ function DraftsPage() {
                                                                     children: att.filename
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                                    lineNumber: 223,
+                                                                    lineNumber: 221,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 " ",
@@ -302,18 +299,18 @@ function DraftsPage() {
                                                                     children: "Remove"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                                    lineNumber: 226,
+                                                                    lineNumber: 224,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             ]
                                                         }, att.id, true, {
                                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                            lineNumber: 222,
+                                                            lineNumber: 220,
                                                             columnNumber: 27
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 220,
+                                                    lineNumber: 218,
                                                     columnNumber: 23
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     style: {
@@ -322,7 +319,7 @@ function DraftsPage() {
                                                     children: "No attachments."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 238,
+                                                    lineNumber: 236,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -331,34 +328,34 @@ function DraftsPage() {
                                                     },
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                                         type: "file",
-                                                        ref: fileInputRef,
+                                                        multiple: true,
                                                         onChange: (e)=>{
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                void handleAddAttachment(draft.id, file);
+                                                            const files = e.target.files ? Array.from(e.target.files) : [];
+                                                            if (files.length > 0) {
+                                                                void handleAddAttachment(draft.id, files);
                                                                 e.target.value = "";
                                                             }
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                        lineNumber: 241,
+                                                        lineNumber: 239,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                                    lineNumber: 240,
+                                                    lineNumber: 238,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 217,
+                                            lineNumber: 215,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                    lineNumber: 213,
+                                    lineNumber: 211,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -374,7 +371,7 @@ function DraftsPage() {
                                             children: "Submit"
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 256,
+                                            lineNumber: 254,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -384,39 +381,39 @@ function DraftsPage() {
                                             children: "Delete"
                                         }, void 0, false, {
                                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                            lineNumber: 259,
+                                            lineNumber: 257,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                                    lineNumber: 255,
+                                    lineNumber: 253,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, draft.id, true, {
                             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                            lineNumber: 212,
+                            lineNumber: 210,
                             columnNumber: 15
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-                    lineNumber: 210,
+                    lineNumber: 208,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-            lineNumber: 191,
+            lineNumber: 189,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/frontend/app/ideas/drafts/page.tsx",
-        lineNumber: 190,
+        lineNumber: 188,
         columnNumber: 5
     }, this);
 }
-_s(DraftsPage, "bOALmbh4SiYHgvQTE101pa+Zd5U=", false, function() {
+_s(DraftsPage, "lzXZXrZTDAeDrEOVM1U/lAJON2Q=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];

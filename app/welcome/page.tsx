@@ -74,30 +74,37 @@ export default function WelcomePage() {
 
     if (selected.length === 0) {
       setFiles([]);
+      setError(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.files = new DataTransfer().files;
+      }
       return;
     }
 
-    // Enforce single-file policy on the client side
-    let nextFiles = selected.slice(0, 1);
-    if (selected.length > 1) {
-      setError("At most one file can be uploaded.");
+    const newlyAllowed = selected.filter((file) => isAllowedFile(file));
+
+    if (newlyAllowed.length !== selected.length) {
+      setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
     } else {
       setError(null);
     }
 
-    const allowed = nextFiles.filter((file) => isAllowedFile(file));
+    setFiles((prev) => {
+      // Aynı dosyayı tekrar eklememek için isim + size ile basit filtreleme
+      const existingKeys = new Set(prev.map((f) => `${f.name}-${f.size}`));
+      const merged = [
+        ...prev,
+        ...newlyAllowed.filter((f) => !existingKeys.has(`${f.name}-${f.size}`)),
+      ];
 
-    if (allowed.length !== nextFiles.length) {
-      setError("Only document files (pdf, doc, docx, xls, xlsx, ppt, pptx) are allowed.");
-    }
+      if (fileInputRef.current) {
+        const dt = new DataTransfer();
+        merged.forEach((file) => dt.items.add(file));
+        fileInputRef.current.files = dt.files;
+      }
 
-    setFiles(allowed);
-
-    if (fileInputRef.current) {
-      const dt = new DataTransfer();
-      allowed.forEach((file) => dt.items.add(file));
-      fileInputRef.current.files = dt.files;
-    }
+      return merged;
+    });
   };
 
   const renderStatus = (status?: string) => {
@@ -122,8 +129,6 @@ export default function WelcomePage() {
       return;
     }
 
-    // Always derive the name from the current token (DB-backed),
-    // falling back to email if username is not present.
     let nameToUse: string | null = null;
     let emailFromToken: string | null = null;
     try {
@@ -132,7 +137,9 @@ export default function WelcomePage() {
         const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
         const payloadUsername = payload?.username as string | undefined;
         const payloadEmail = payload?.email as string | undefined;
-        nameToUse = payloadUsername || payloadEmail || null;
+        const emailName = payloadEmail ? payloadEmail.split("@")[0] : null;
+        // Prefer explicit username, then local-part of email, then full email.
+        nameToUse = payloadUsername || emailName || payloadEmail || null;
         emailFromToken = payloadEmail || null;
 
         if (typeof window !== "undefined") {
@@ -140,8 +147,9 @@ export default function WelcomePage() {
             if (emailFromToken) {
               window.localStorage.setItem("userEmail", emailFromToken);
             }
-            if (payloadUsername) {
-              window.localStorage.setItem("userName", payloadUsername);
+            const derivedUserName = payloadUsername || emailName || null;
+            if (derivedUserName) {
+              window.localStorage.setItem("userName", derivedUserName);
             } else {
               window.localStorage.removeItem("userName");
             }
@@ -152,6 +160,14 @@ export default function WelcomePage() {
       }
     } catch {
       // ignore decode errors; nameToUse stays null
+    }
+
+    // Fallback: if we still have no name, try any stored userName.
+    if (!nameToUse && typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("userName");
+      if (stored) {
+        nameToUse = stored;
+      }
     }
 
     setDisplayName(nameToUse);
@@ -413,7 +429,7 @@ export default function WelcomePage() {
           </div>
 
           <div className="idea-form-field">
-            <label htmlFor="attachment">Attachment (you can select one file)</label>
+            <label htmlFor="attachment">Attachment (you can select multiple files)</label>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
               <button
                 type="button"
@@ -429,6 +445,7 @@ export default function WelcomePage() {
               name="attachment"
               type="file"
               ref={fileInputRef}
+              multiple
               onChange={handleFilesChange}
               style={{ display: "none" }}
             />

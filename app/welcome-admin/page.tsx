@@ -66,29 +66,21 @@ export default function WelcomeAdminPage() {
       return;
     }
 
-    // Role guard: evaluator-only dashboard
+    // Derive evaluator role and display name from current token
     try {
       const parts = token.split(".");
       if (parts.length === 3) {
         const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+
         if (payload?.role !== "EVALUATOR") {
           router.replace("/welcome");
           return;
         }
-      }
-    } catch {
-      router.replace("/login");
-      return;
-    }
 
-    // Derive admin/evaluator display name from current token (username or email)
-    try {
-      const parts = token.split(".");
-      if (parts.length === 3) {
-        const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
         const payloadUsername = payload?.username as string | undefined;
         const payloadEmail = payload?.email as string | undefined;
-        const nameToUse = payloadUsername || payloadEmail || null;
+        const emailName = payloadEmail ? payloadEmail.split("@")[0] : null;
+        const nameToUse = payloadUsername || emailName || payloadEmail || null;
         setDisplayName(nameToUse);
 
         if (typeof window !== "undefined") {
@@ -96,8 +88,9 @@ export default function WelcomeAdminPage() {
             if (payloadEmail) {
               window.localStorage.setItem("userEmail", payloadEmail);
             }
-            if (payloadUsername) {
-              window.localStorage.setItem("userName", payloadUsername);
+            const derivedUserName = payloadUsername || emailName || null;
+            if (derivedUserName) {
+              window.localStorage.setItem("userName", derivedUserName);
             } else {
               window.localStorage.removeItem("userName");
             }
@@ -107,7 +100,8 @@ export default function WelcomeAdminPage() {
         }
       }
     } catch {
-      // ignore decode errors
+      router.replace("/login");
+      return;
     }
 
     setAccessToken(token);
@@ -336,11 +330,6 @@ export default function WelcomeAdminPage() {
             </div>
             <ul className="idea-list">
               {ideas.map((idea) => {
-                const latestComment =
-                  idea.evaluations && idea.evaluations.length > 0
-                    ? idea.evaluations[idea.evaluations.length - 1].comments
-                    : null;
-
                 const isFinal = idea.status === "ACCEPTED" || idea.status === "REJECTED";
 
                 return (
@@ -370,20 +359,7 @@ export default function WelcomeAdminPage() {
                     </div>
                     <div>
                       {isFinal ? (
-                        <>
-                          <p style={{ margin: 0 }}>Decision recorded.</p>
-                          {latestComment && (
-                            <p
-                              style={{
-                                margin: "0.25rem 0 0 0",
-                                fontSize: "0.85rem",
-                                color: "#6b7280",
-                              }}
-                            >
-                              Admin comment: {latestComment}
-                            </p>
-                          )}
-                        </>
+                        <p style={{ margin: 0 }}>Decision recorded.</p>
                       ) : (
                         <>
                           <div className="idea-form-field" style={{ marginTop: "0.15rem" }}>
@@ -444,17 +420,6 @@ export default function WelcomeAdminPage() {
                               {evaluatingId === idea.id ? "Saving..." : "Submit"}
                             </button>
                           </div>
-                          {latestComment && (
-                            <p
-                              style={{
-                                margin: "0.35rem 0 0 0",
-                                fontSize: "0.85rem",
-                                color: "#6b7280",
-                              }}
-                            >
-                              Admin comment: {latestComment}
-                            </p>
-                          )}
                         </>
                       )}
                     </div>

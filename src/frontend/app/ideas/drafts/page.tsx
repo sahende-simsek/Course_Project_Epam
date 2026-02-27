@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Draft {
@@ -24,7 +24,6 @@ export default function DraftsPage() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? window.localStorage.getItem("accessToken") : null;
@@ -126,58 +125,57 @@ export default function DraftsPage() {
     }
   };
 
-  const handleAddAttachment = async (draftId: string, file: File) => {
+  const handleAddAttachment = async (draftId: string, files: File[]) => {
     if (!accessToken) return;
     setError(null);
 
-    // Check if the draft already has an attachment
-    const draft = drafts.find((d) => d.id === draftId);
-    if (draft && draft.attachments && draft.attachments.length > 0) {
-      setError("This draft already has an attachment. Please remove it before adding a new one.");
-      return;
-    }
-
     try {
-      const contents = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result === "string") {
-            const base64 = result.includes(",") ? result.split(",")[1] : result;
-            resolve(base64);
-          } else {
-            reject(new Error("Failed to read file"));
-          }
-        };
-        reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
-        reader.readAsDataURL(file);
-      });
+      const newAttachments: any[] = [];
 
-      const res = await fetch("http://localhost:3000/api/drafts/attach", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          draftId,
-          filename: file.name,
-          mimetype: file.type || "application/octet-stream",
-          size: file.size,
-          contentBase64: contents,
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        const msg = body?.error || body?.error?.message || `Failed to add attachment (${res.status})`;
-        throw new Error(msg);
+      for (const file of files) {
+        const contents = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            if (typeof result === "string") {
+              const base64 = result.includes(",") ? result.split(",")[1] : result;
+              resolve(base64);
+            } else {
+              reject(new Error("Failed to read file"));
+            }
+          };
+          reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
+
+        const res = await fetch("http://localhost:3000/api/drafts/attach", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            draftId,
+            filename: file.name,
+            mimetype: file.type || "application/octet-stream",
+            size: file.size,
+            contentBase64: contents,
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          const msg = body?.error || body?.error?.message || `Failed to add attachment (${res.status})`;
+          throw new Error(msg);
+        }
+
+        const newAttachment = await res.json();
+        newAttachments.push(newAttachment);
       }
 
-      const newAttachment = await res.json();
       setDrafts((prev) =>
         prev.map((d) =>
           d.id === draftId
-            ? { ...d, attachments: [...(d.attachments || []), newAttachment] }
+            ? { ...d, attachments: [...(d.attachments || []), ...newAttachments] }
             : d
         )
       );
@@ -240,11 +238,11 @@ export default function DraftsPage() {
                     <div style={{ marginTop: "0.5rem" }}>
                       <input
                         type="file"
-                        ref={fileInputRef}
+                        multiple
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            void handleAddAttachment(draft.id, file);
+                          const files = e.target.files ? Array.from(e.target.files) : [];
+                          if (files.length > 0) {
+                            void handleAddAttachment(draft.id, files);
                             e.target.value = "";
                           }
                         }}

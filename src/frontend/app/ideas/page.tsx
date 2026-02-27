@@ -53,7 +53,8 @@ export default function IdeasPage() {
       <ul>
         {ideas.map((idea) => (
           <li key={idea.id}>
-            <strong>{idea.title}</strong> – {idea.category} ({idea.status})
+            <strong>{idea.title}</strong> – {idea.category} ({idea.status}){" "}
+            <a href={`/ideas/${encodeURIComponent(idea.id)}`}>View</a>
           </li>
         ))}
       </ul>

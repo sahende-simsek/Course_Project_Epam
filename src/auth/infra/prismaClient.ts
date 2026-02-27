@@ -164,7 +164,12 @@ if (process.env.TEST_USE_INMEMORY === '1') {
 				let count = 0;
 				Object.keys(attachments).forEach((id) => {
 					const att = attachments[id];
-					if (!where || (where.ideaId && att.ideaId === where.ideaId)) {
+					let match = true;
+					if (where) {
+						if (where.id && att.id !== where.id) match = false;
+						if (where.ideaId && att.ideaId !== where.ideaId) match = false;
+					}
+					if (match) {
 						delete attachments[id];
 						count++;
 					}
